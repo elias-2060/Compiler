@@ -1,0 +1,43 @@
+{
+  "Variables": ["S'", "S", "B", "M", "U", "R", "T", "INT", "I", "N"],
+  "Alphabet": ["+", "-", "*", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+
+  "Transitions": [
+    {"head": "S'", "body": [".", "S"], "lookahead": "$"},
+    {"head": "S", "body": [".", "B"], "lookahead": "$"},
+
+    {"head": "B", "body": [".", "B", "+", "M"], "lookahead": "$"},
+    {"head": "B", "body": [".", "B", "-", "M"], "lookahead": "$"},
+    {"head": "B", "body": [".", "M"], "lookahead": "$"},
+
+    {"head": "M", "body": [".", "M", "*", "U"], "lookahead": "$"},
+    {"head": "M", "body": [".", "M", "/", "U"], "lookahead": "$"},
+    {"head": "M", "body": [".", "U"], "lookahead": "$"}
+
+    {"head": "U", "body": [".", "+", "R"], "lookahead": "$"}
+    {"head": "U", "body": [".", "-", "R"], "lookahead": "$"}
+    {"head": "U", "body": [".", "R"], "lookahead": "$"}
+
+    {"head": "R", "body": [".", "(", "B", ")"], "lookahead": "$"}
+    {"head": "R", "body": [".", "T"], "lookahead": "$"}
+
+    {"head": "T", "body": [".", "INT"], "lookahead": "$"}
+
+    {"head": "INT", "body": [".", "N"], "lookahead": "$"},
+
+    {"head": "I", "body": [".", "0"], "lookahead": "$"},
+    {"head": "I", "body": [".", "1"], "lookahead": "$"},
+    {"head": "I", "body": [".", "2"], "lookahead": "$"},
+    {"head": "I", "body": [".", "3"], "lookahead": "$"},
+    {"head": "I", "body": [".", "4"], "lookahead": "$"},
+    {"head": "I", "body": [".", "5"], "lookahead": "$"},
+    {"head": "I", "body": [".", "6"], "lookahead": "$"},
+    {"head": "I", "body": [".", "7"], "lookahead": "$"},
+    {"head": "I", "body": [".", "8"], "lookahead": "$"},
+    {"head": "I", "body": [".", "9"], "lookahead": "$"},
+
+    {"head": "N", "body": [".", "I"], "lookahead": "$"},
+    {"head": "N", "body": [".", "N", "I"], "lookahead": "$"}
+  ],
+  "Start": "S'"
+}
