@@ -9,7 +9,8 @@ using namespace std;
 // Token types
 enum TokenType {
     ID, KEYWORD, CHAR, STRING, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER, AND, OR, ISEQUAL, ST, GT,
-    SET, GET, NOT, NET, OPENBRACKETS, CLOSINGBRACKETS, SEMICOLON
+    SET, GET, NOT, NET, OPENBRACKETS, CLOSINGBRACKETS, SEMICOLON, CONST, IF, ELSE, RETURN, OPENPARENT, CLOSINGPARENT,
+    PRINTF, SEMI
 };
 
 // Token structure
@@ -44,7 +45,23 @@ public:
                 // Check if it's a keyword
                 if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "void") {
                     tokens.push_back({KEYWORD, lexeme});
-                } else {
+                }
+                else if(lexeme == "const"){
+                    tokens.push_back({CONST, lexeme});
+                }
+                else if(lexeme == "if"){
+                    tokens.push_back({IF, lexeme});
+                }
+                else if(lexeme == "else"){
+                    tokens.push_back({ELSE, lexeme});
+                }
+                else if(lexeme == "return"){
+                    tokens.push_back({RETURN, lexeme});
+                }
+                else if(lexeme == "printf"){
+                    tokens.push_back({PRINTF, lexeme});
+                }
+                else {
                     tokens.push_back({ID, lexeme});
                 }
             }
@@ -176,10 +193,19 @@ public:
                         }
                         break;
                     case '(':
-                        tokens.push_back({OPENBRACKETS, "("});
+                        tokens.push_back({OPENPARENT, "("});
                         break;
                     case ')':
-                        tokens.push_back({CLOSINGBRACKETS, ")"});
+                        tokens.push_back({CLOSINGPARENT, ")"});
+                        break;
+                    case '{':
+                        tokens.push_back({OPENBRACKETS, "{"});
+                        break;
+                    case '}':
+                        tokens.push_back({CLOSINGBRACKETS, "}"});
+                        break;
+                    case ',':
+                        tokens.push_back({SEMI, ","});
                         break;
 
                     default:

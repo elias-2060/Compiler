@@ -1,30 +1,30 @@
 prog: expr;
 
-expr: opAnd ';' | opAnd ';' expr | variableDefinition expr | variableDeclaration ';' expr | assignmentStatement ';' expr
-    | printFunction expr | conditionStatement expr | returnStatement expr | lib expr | ;
+expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr | assignmentStatement SEMICOLON expr
+    | printFunction expr | conditionStatement expr | returnStatement expr | ;
 
-opAnd: opAnd '&&' opOr | opOr;
+opAnd: opAnd AND opOr | opOr;
 
-opOr: opOr '||' opCompare | opCompare;
+opOr: opOr OR opCompare | opCompare;
 
-opCompare: opCompare '==' opAddOrSub | opCompare '<=' opAddOrSub | opCompare '>=' opAddOrSub
-	 | opCompare '!=' opAddOrSub | opCompare '<' opAddOrSub | opCompare '>' opAddOrSub | opAddOrSub;
+opCompare: opCompare ISEQUAL opAddOrSub | opCompare SET opAddOrSub | opCompare GET opAddOrSub
+	 | opCompare NET opAddOrSub | opCompare ST opAddOrSub | opCompare GT opAddOrSub | opAddOrSub;
 
-opAddOrSub: opAddOrSub '+' opMultOrDiv | opAddOrSub '-' opMultOrDiv | opMultOrDiv;
+opAddOrSub: opAddOrSub PLUS opMultOrDiv | opAddOrSub MINUS opMultOrDiv | opMultOrDiv;
 
-opMultOrDiv: opMultOrDiv '*' opUnary | opMultOrDiv '/' opUnary | opMultOrDiv '%' opUnary | opUnary;
+opMultOrDiv: opMultOrDiv MULTIPLY opUnary | opMultOrDiv DIVIDE opUnary | opMultOrDiv REMINDER opUnary | opUnary;
 
-opUnary: '+' brackets | '-' brackets | '!' brackets | brackets;
+opUnary: PLUS brackets | MINUS brackets | NOT brackets | brackets;
 
-brackets: '(' opAnd ')' | dataTypes;
+brackets: OPENPARENT opAnd CLOSINGPARENT | dataTypes;
 
-variableDefinition: variableDeclaration '=' opAnd ';';
+variableDefinition: variableDeclaration EQUAL opAnd SEMICOLON;
 
 variableDeclaration: constWord nameIdentifier;
 
-assignmentStatement: referenceID '=' opAddOrSub | dataTypes '=' opAddOrSub;
+assignmentStatement: referenceID EQUAL opAddOrSub | dataTypes EQUAL opAddOrSub;
 
-constWord: 'const' reservedWord | reservedWord;
+constWord: CONST reservedWord | reservedWord;
 
 reservedWord: KEYWORD;
 
@@ -42,18 +42,16 @@ nameIdentifier: ID;
 
 conditionStatement: ifStatement (elifStatement)* (elseStatement)?;
 
-printFunction: 'printf' '(' printArg ')' ';';
+printFunction: PRINTF OPENPARENT printArg CLOSINGPARENT SEMICOLON;
 
-printArg: (string ',' ((opAnd | string) ',')*(opAnd | string)) | string;
+printArg: (string SEMI ((opAnd | string) SEMI)*(opAnd | string)) | string;
 
-ifStatement: 'if' '(' opAnd ')' '{' body '}';
+ifStatement: IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
 
-elifStatement: 'else' 'if' '(' opAnd ')' '{' body '}';
+elifStatement: ELSE IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
 
-elseStatement: 'else' '{' body '}';
-
-lib: '#include' '<stdio.h>';
+elseStatement: ELSE OPENBRACKETS body CLOSINGBRACKETS;
 
 body: expr;
 
-returnStatement: 'return' (opAnd|) ';';
+returnStatement: RETURN (opAnd|) SEMICOLON;

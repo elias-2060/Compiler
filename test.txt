@@ -1,0 +1,5 @@
+const float x = 42;
+int y = x + 10;
+y = (2+3) * 10;
+if (y == 50 || y <= 0){}
+else{}
