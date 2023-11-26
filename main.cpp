@@ -18,8 +18,10 @@ string inputFile(const string& fileName){
 }
 
 int main (){
+    // Create lexer and convert the input into tokens
     string sourceCode = inputFile("test.txt");
     Lexer lexer(sourceCode);
+    // Get the tokens
     vector<Token> tokens = lexer.getTokens();
 
     // Print tokens
