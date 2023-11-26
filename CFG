@@ -1,0 +1,59 @@
+prog: expr;
+
+expr: opAnd ';' | opAnd ';' expr | variableDefinition expr | variableDeclaration ';' expr | assignmentStatement ';' expr
+    | printFunction expr | conditionStatement expr | returnStatement expr | lib expr | ;
+
+opAnd: opAnd '&&' opOr | opOr;
+
+opOr: opOr '||' opCompare | opCompare;
+
+opCompare: opCompare '==' opAddOrSub | opCompare '<=' opAddOrSub | opCompare '>=' opAddOrSub
+	 | opCompare '!=' opAddOrSub | opCompare '<' opAddOrSub | opCompare '>' opAddOrSub | opAddOrSub;
+
+opAddOrSub: opAddOrSub '+' opMultOrDiv | opAddOrSub '-' opMultOrDiv | opMultOrDiv;
+
+opMultOrDiv: opMultOrDiv '*' opUnary | opMultOrDiv '/' opUnary | opMultOrDiv '%' opUnary | opUnary;
+
+opUnary: '+' brackets | '-' brackets | '!' brackets | brackets;
+
+brackets: '(' opAnd ')' | dataTypes;
+
+variableDefinition: variableDeclaration '=' opAnd ';';
+
+variableDeclaration: constWord nameIdentifier;
+
+assignmentStatement: referenceID '=' opAddOrSub | dataTypes '=' opAddOrSub;
+
+constWord: 'const' reservedWord | reservedWord;
+
+reservedWord: KEYWORD;
+
+dataTypes: int | float | char | nameIdentifier;
+
+int: INT;
+
+float: FLOAT;
+
+char: CHAR;
+
+string: STRING;
+
+nameIdentifier: ID;
+
+conditionStatement: ifStatement (elifStatement)* (elseStatement)?;
+
+printFunction: 'printf' '(' printArg ')' ';';
+
+printArg: (string ',' ((opAnd | string) ',')*(opAnd | string)) | string;
+
+ifStatement: 'if' '(' opAnd ')' '{' body '}';
+
+elifStatement: 'else' 'if' '(' opAnd ')' '{' body '}';
+
+elseStatement: 'else' '{' body '}';
+
+lib: '#include' '<stdio.h>';
+
+body: expr;
+
+returnStatement: 'return' (opAnd|) ';';
