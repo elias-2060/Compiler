@@ -1,5 +1,3 @@
-prog: expr;
-
 expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr | assignmentStatement SEMICOLON expr
     | printFunction expr | conditionStatement expr | returnStatement expr | ;
 
@@ -28,17 +26,7 @@ constWord: CONST reservedWord | reservedWord;
 
 reservedWord: KEYWORD;
 
-dataTypes: int | float | char | nameIdentifier;
-
-int: INT;
-
-float: FLOAT;
-
-char: CHAR;
-
-string: STRING;
-
-nameIdentifier: ID;
+dataTypes: INT | FLOAT | CHAR | ID;
 
 conditionStatement: ifStatement (elifStatement)* (elseStatement)?;
 
@@ -54,4 +42,4 @@ elseStatement: ELSE OPENBRACKETS body CLOSINGBRACKETS;
 
 body: expr;
 
-returnStatement: RETURN (opAnd|) SEMICOLON;
+returnStatement: RETURN (opAnd | ) SEMICOLON;
