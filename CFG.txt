@@ -1,5 +1,5 @@
-expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr | assignmentStatement SEMICOLON expr
-    | printFunction expr | conditionStatement expr | returnStatement expr | ;
+expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr |
+      assignmentStatement SEMICOLON expr | conditionStatement expr |;
 
 opAnd: opAnd AND opOr | opOr;
 
@@ -30,10 +30,6 @@ dataTypes: INT | FLOAT | CHAR | ID;
 
 conditionStatement: ifStatement (elifStatement)* (elseStatement)?;
 
-printFunction: PRINTF OPENPARENT printArg CLOSINGPARENT SEMICOLON;
-
-printArg: (string SEMI ((opAnd | string) SEMI)*(opAnd | string)) | string;
-
 ifStatement: IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
 
 elifStatement: ELSE IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
@@ -41,5 +37,3 @@ elifStatement: ELSE IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGB
 elseStatement: ELSE OPENBRACKETS body CLOSINGBRACKETS;
 
 body: expr;
-
-returnStatement: RETURN (opAnd | ) SEMICOLON;
