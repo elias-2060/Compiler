@@ -1,5 +1,5 @@
 expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr |
-      assignmentStatement SEMICOLON expr | conditionStatement expr |;
+      assignmentStatement SEMICOLON expr |;
 
 opAnd: opAnd AND opOr | opOr;
 
@@ -27,13 +27,3 @@ constWord: CONST reservedWord | reservedWord;
 reservedWord: KEYWORD;
 
 dataTypes: INT | FLOAT | CHAR | ID;
-
-conditionStatement: ifStatement (elifStatement)* (elseStatement)?;
-
-ifStatement: IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
-
-elifStatement: ELSE IF OPENPARENT opAnd CLOSINGPARENT OPENBRACKETS body CLOSINGBRACKETS;
-
-elseStatement: ELSE OPENBRACKETS body CLOSINGBRACKETS;
-
-body: expr;
