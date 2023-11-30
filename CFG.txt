@@ -18,9 +18,9 @@ brackets: OPENPARENT opAnd CLOSINGPARENT | dataTypes;
 
 variableDefinition: variableDeclaration EQUAL opAnd SEMICOLON;
 
-variableDeclaration: constWord nameIdentifier;
+variableDeclaration: constWord ID;
 
-assignmentStatement: referenceID EQUAL opAddOrSub | dataTypes EQUAL opAddOrSub;
+assignmentStatement: ID EQUAL opAddOrSub;
 
 constWord: CONST reservedWord | reservedWord;
 

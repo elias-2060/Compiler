@@ -8,9 +8,8 @@ using namespace std;
 
 // Token types
 enum TokenType {
-    ID, KEYWORD, CHAR, STRING, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER, AND, OR, ISEQUAL, ST, GT,
-    SET, GET, NOT, NET, OPENBRACKETS, CLOSINGBRACKETS, SEMICOLON, CONST, IF, ELSE, RETURN, OPENPARENT, CLOSINGPARENT,
-    PRINTF, SEMI
+    ID, KEYWORD, CHAR, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER, AND, OR, ISEQUAL, ST, GT,
+    SET, GET, NOT, NET, SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT
 };
 
 // Token structure
@@ -23,7 +22,7 @@ class Lexer{
 private:
     vector<Token> tokens;
 public:
-    Lexer(const string& input) {
+    explicit Lexer(const string& input) {
         size_t pos = 0;
         while (pos < input.length()) {
             char currentChar = input[pos];
@@ -43,23 +42,11 @@ public:
                 string lexeme = input.substr(start, pos - start);
 
                 // Check if it's a keyword
-                if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "void") {
+                if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "string"){
                     tokens.push_back({KEYWORD, lexeme});
                 }
                 else if(lexeme == "const"){
                     tokens.push_back({CONST, lexeme});
-                }
-                else if(lexeme == "if"){
-                    tokens.push_back({IF, lexeme});
-                }
-                else if(lexeme == "else"){
-                    tokens.push_back({ELSE, lexeme});
-                }
-                else if(lexeme == "return"){
-                    tokens.push_back({RETURN, lexeme});
-                }
-                else if(lexeme == "printf"){
-                    tokens.push_back({PRINTF, lexeme});
                 }
                 else {
                     tokens.push_back({ID, lexeme});
@@ -100,21 +87,6 @@ public:
                     }
                 } else {
                     cerr << "syntaxError: Unexpected end of input after single quote for character literal at position " << pos << endl;
-                }
-            }
-            // Strings
-            else if (currentChar == '\"') {
-                pos++; // Consume the opening double quote
-                size_t start = pos;
-                while (pos < input.length() && input[pos] != '\"') {
-                    pos++;
-                }
-                if (pos < input.length() && input[pos] == '\"') {
-                    std::string lexeme = input.substr(start, pos - start);
-                    tokens.push_back({STRING, lexeme});
-                    pos++; // Consume the closing double quote
-                } else {
-                    cerr << "syntaxError: Expected closing double quote for string literal starting at position " << start << endl;
                 }
             }
             // Operators and semicolon
@@ -198,16 +170,6 @@ public:
                     case ')':
                         tokens.push_back({CLOSINGPARENT, ")"});
                         break;
-                    case '{':
-                        tokens.push_back({OPENBRACKETS, "{"});
-                        break;
-                    case '}':
-                        tokens.push_back({CLOSINGBRACKETS, "}"});
-                        break;
-                    case ',':
-                        tokens.push_back({SEMI, ","});
-                        break;
-
                     default:
                         cerr << "syntaxError: Unrecognized character at position " << pos << endl;
                         pos++;
