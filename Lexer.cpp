@@ -4,6 +4,8 @@
 #include <iostream>
 #include <regex>
 #include <vector>
+#include <stack>
+#include <queue>
 using namespace std;
 
 // Token types
@@ -20,7 +22,7 @@ struct Token {
 
 class Lexer{
 private:
-    vector<Token> tokens;
+    queue<Token> tokens;
 public:
     explicit Lexer(const string& input) {
         size_t pos = 0;
@@ -43,13 +45,13 @@ public:
 
                 // Check if it's a keyword
                 if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "string"){
-                    tokens.push_back({KEYWORD, lexeme});
+                    tokens.push({KEYWORD, lexeme});
                 }
                 else if(lexeme == "const"){
-                    tokens.push_back({CONST, lexeme});
+                    tokens.push({CONST, lexeme});
                 }
                 else {
-                    tokens.push_back({ID, lexeme});
+                    tokens.push({ID, lexeme});
                 }
             }
             // Integers and Floats
@@ -66,9 +68,9 @@ public:
 
                 string lexeme = input.substr(start, pos - start);
                 if (isFloat) {
-                    tokens.push_back({FLOAT, lexeme});
+                    tokens.push({FLOAT, lexeme});
                 } else {
-                    tokens.push_back({INT, lexeme});
+                    tokens.push({INT, lexeme});
                 }
             }
             // Chars
@@ -78,7 +80,7 @@ public:
                     std::string lexeme = "'";
                     lexeme += input[pos];
                     lexeme += "'";
-                    tokens.push_back({CHAR, lexeme});
+                    tokens.push({CHAR, lexeme});
                     pos++;
                     if (pos < input.length() && input[pos] == '\'') {
                         pos++;
@@ -93,63 +95,63 @@ public:
             else {
                 switch (currentChar) {
                     case '+':
-                        tokens.push_back({PLUS, "+"});
+                        tokens.push({PLUS, "+"});
                         break;
                     case '-':
-                        tokens.push_back({MINUS, "-"});
+                        tokens.push({MINUS, "-"});
                         break;
                     case '*':
-                        tokens.push_back({MULTIPLY, "*"});
+                        tokens.push({MULTIPLY, "*"});
                         break;
                     case '/':
-                        tokens.push_back({DIVIDE, "/"});
+                        tokens.push({DIVIDE, "/"});
                         break;
                     case '%':
-                        tokens.push_back({REMINDER, "%"});
+                        tokens.push({REMINDER, "%"});
                         break;
                     case ';':
-                        tokens.push_back({SEMICOLON, ";"});
+                        tokens.push({SEMICOLON, ";"});
                         break;
                     case '=':
                         // Check for "==" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push_back({ISEQUAL, "=="});
+                            tokens.push({ISEQUAL, "=="});
                             pos++;
                         } else {
-                            tokens.push_back({EQUAL, "="});
+                            tokens.push({EQUAL, "="});
                         }
                         break;
                     case '<':
                         // Check for "<=" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push_back({SET, "<="});
+                            tokens.push({SET, "<="});
                             pos++;
                         } else {
-                            tokens.push_back({ST, "<"});
+                            tokens.push({ST, "<"});
                         }
                         break;
                     case '>':
                         // Check for ">=" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push_back({GET, ">="});
+                            tokens.push({GET, ">="});
                             pos++;
                         } else {
-                            tokens.push_back({GT, ">"});
+                            tokens.push({GT, ">"});
                         }
                         break;
                     case '!':
                         // Check for "!=" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push_back({NET, "!="});
+                            tokens.push({NET, "!="});
                             pos++;
                         } else {
-                            tokens.push_back({NOT, "!"});
+                            tokens.push({NOT, "!"});
                         }
                         break;
                     case '&':
                         // Check for "&&" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '&') {
-                            tokens.push_back({AND, "&&"});
+                            tokens.push({AND, "&&"});
                             pos++;
                         } else {
                             cerr << "syntaxError: Expected second '&' for '&&' operator at position " << pos << endl;
@@ -158,17 +160,17 @@ public:
                     case '|':
                         // Check for "||" operator
                         if (pos + 1 < input.length() && input[pos + 1] == '|') {
-                            tokens.push_back({OR, "||"});
+                            tokens.push({OR, "||"});
                             pos++;
                         } else {
                             cerr << "syntaxError: Expected second '|' for '||' operator at position " << pos << endl;
                         }
                         break;
                     case '(':
-                        tokens.push_back({OPENPARENT, "("});
+                        tokens.push({OPENPARENT, "("});
                         break;
                     case ')':
-                        tokens.push_back({CLOSINGPARENT, ")"});
+                        tokens.push({CLOSINGPARENT, ")"});
                         break;
                     default:
                         cerr << "syntaxError: Unrecognized character at position " << pos << endl;
@@ -180,7 +182,7 @@ public:
         }
     }
 
-    vector<Token> getTokens(){
+    queue<Token> getTokens(){
         return tokens;
     }
 };

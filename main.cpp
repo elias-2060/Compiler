@@ -3,6 +3,7 @@
 //
 #include "Lexer.cpp"
 #include <fstream>
+#include "lrParser.cpp"
 
 string inputFile(const string& fileName){
     while (true)
@@ -21,12 +22,24 @@ int main (){
     // Create lexer and convert the input into tokens
     string sourceCode = inputFile("test.txt");
     Lexer lexer(sourceCode);
+
     // Get the tokens
-    vector<Token> tokens = lexer.getTokens();
+    queue<Token> tokens = lexer.getTokens();
+
+    // Get the tokens to print
+    queue<Token> printTokens = lexer.getTokens();
+
+    // Create parser
+    Parser parser;
+
+    // Parse tokens
+    parser.parse(tokens);
 
     // Print tokens
-    for (const Token& token : tokens) {
-        std::cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << std::endl;
+    for (int i = 0; i < printTokens.size(); i++) {
+        Token token = printTokens.front();
+        cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << endl;
+        printTokens.pop();
     }
 
     return 0;
