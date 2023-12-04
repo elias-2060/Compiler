@@ -1,22 +1,15 @@
-expr: opAnd SEMICOLON | opAnd SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr |
+expr: opAddOrSub SEMICOLON | opAddOrSub SEMICOLON expr | variableDefinition expr | variableDeclaration SEMICOLON expr |
       assignmentStatement SEMICOLON expr |;
-
-opAnd: opAnd AND opOr | opOr;
-
-opOr: opOr OR opCompare | opCompare;
-
-opCompare: opCompare ISEQUAL opAddOrSub | opCompare SET opAddOrSub | opCompare GET opAddOrSub
-	 | opCompare NET opAddOrSub | opCompare ST opAddOrSub | opCompare GT opAddOrSub | opAddOrSub;
 
 opAddOrSub: opAddOrSub PLUS opMultOrDiv | opAddOrSub MINUS opMultOrDiv | opMultOrDiv;
 
 opMultOrDiv: opMultOrDiv MULTIPLY opUnary | opMultOrDiv DIVIDE opUnary | opMultOrDiv REMINDER opUnary | opUnary;
 
-opUnary: PLUS brackets | MINUS brackets | NOT brackets | brackets;
+opUnary: PLUS brackets | MINUS brackets | brackets;
 
-brackets: OPENPARENT opAnd CLOSINGPARENT | dataTypes;
+brackets: OPENPARENT opAddOrSub CLOSINGPARENT | dataTypes;
 
-variableDefinition: variableDeclaration EQUAL opAnd SEMICOLON;
+variableDefinition: variableDeclaration EQUAL opAddOrSub SEMICOLON;
 
 variableDeclaration: constWord ID;
 
