@@ -3,12 +3,15 @@
 //
 #include "Lexer.cpp"
 
+typedef pair<string, vector<string>> Rule;
+typedef pair<Rule, int> LRitem;
+
 class Node {
 private:
     string value;
 public:
-    explicit Node(string value) {
-        this->value = value;
+    explicit Node(string v) {
+        this->value = v;
     }
 
     string getValue() {
@@ -26,189 +29,81 @@ private:
 class Parser {
 private:
     stack<int> parseStack;
+    vector<Rule> closures;
+    vector<Rule> follows;
     vector<vector<string>> parseTable;
-    vector<pair<string, vector<string>>> rules;
+    vector<Rule> rules;
+    Rule startRule;
+    vector<string> variables;
+    vector<string> terminals;
     CST root;
 public:
-    Parser(){
+    explicit Parser(const string& CFG){
         parseStack.push(0);
-        initRules();
+        initRules(CFG);
+        initClosure();
+        initFolow();
         initParseTable();
+
+    }
+    void initClosure(){
+        Rule closure0 = {"expr'", {"expr"}};
+        Rule closure1 = {"expr", {"opAddOrSub", "variableDefinition", "variableDeclaration", "assignmentStatement"}};
+        Rule closure2 = {"opAddOrSub", {"opMultOrDiv"}};
+        Rule closure3 = {"opMultOrDiv", {"opUnary"}};
+        Rule closure4 = {"opUnary", {"brackets"}};
+        Rule closure5 = {"brackets", {"dataTypes"}};
+        Rule closure6 = {"variableDefinition", {"variableDeclaration"}};
+        Rule closure7 = {"variableDeclaration", {"constWord"}};
+        Rule closure8 = {"assignmentStatement", {}};
+        Rule closure9 = {"constWord", {"reservedWord"}};
+        Rule closure10 = {"reservedWord", {}};
+        Rule closure11 = {"dataTypes", {}};
+        closures = {closure0, closure1, closure2, closure3, closure4, closure5, closure6, closure7, closure8, closure9, closure10, closure11};
     }
 
+    void initFolow(){
+        Rule follow0 = {"expr", {"$"}};
+        Rule follow1 = {"opAddOrSub", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT"}};
+        Rule follow2 = {"opMultOrDiv", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
+        Rule follow3 = {"opUnary", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
+        Rule follow4 = {"brackets", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
+        Rule follow5 = {"variableDefinition", {"PLUS", "MINUS", "OPENPARENT", "INT", "FLOAT", "CHAR", "ID", "CONST", "KEYWORD", "$"}};
+        Rule follow6 = {"variableDeclaration", {"SEMICOLON", "EQUAL"}};
+        Rule follow7 = {"assignmentStatement", {"SEMICOLON"}};
+        Rule follow8 = {"constWord", {"ID"}};
+        Rule follow9 = {"reservedWord", {"ID"}};
+        Rule follow10 = {"dataTypes", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
+        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8, follow9, follow10};
+    }
     void initParseTable() {
-        vector<string> row0 = {"S10", "S12", "S25", "S23", "S24", "S18", "S19", "", "", "","","","","","","","","","S68", "", "", "S13", "S21", "", "", "2", "3", "8", "11", "15", "16", "17", "20", "4", "5", "6", "9", "14", "22"};
-        vector<string> row1 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "acc", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row2 = {"", "", "", "", "", "", "", "", "", "","","S27","","","","","", "", "", "", "S26", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row3 = {"S10", "S12", "S25", "S23", "S24", "S18", "S19", "", "", "","","","","","","","", "", "S68", "", "", "S13", "S21", "", "", "28", "3", "8", "11", "15", "16", "17", "20", "4", "5", "6", "9", "14", "22"};
-        vector<string> row4 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row5 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row6 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row7 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row8 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row9 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row10 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row11 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row12 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row13 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row14 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row15 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row16 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row17 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row18 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row19 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row20 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row21 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row22 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row23 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row24 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row25 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row26 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row27 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row28 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row29 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row30 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row31 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row32 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row33 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row34 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row35 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row36 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row37 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row38 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row39 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row40 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row41 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row42 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row43 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row44 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row45 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row46 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row47 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row48 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row49 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row50 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row51 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row52 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row53 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row54 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row55 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row56 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row57 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row58 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row59 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row60 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row61 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row62 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row63 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row64 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row65 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row66 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row67 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row68 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row69 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row70 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row71 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row72 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row73 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row74 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row75 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row76 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row77 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row78 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row79 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row80 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row81 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row82 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row83 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row84 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row85 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row86 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row87 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row88 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row89 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row90 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row91 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row92 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row93 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row94 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row95 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row96 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row97 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row98 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row99 = {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row100= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row101= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row102= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row103= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row104= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row105= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row106= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row107= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row108= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row109= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row110= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row111= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row112= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row113= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row114= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        vector<string> row115= {"", "", "", "", "", "", "", "", "", "","","","","","","","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
-        parseTable = {
-                row0, row1, row2, row3, row4, row5, row6, row7, row8, row9, row10, row11, row12, row13, row14, row15,
-                row16, row17, row18, row19, row20, row21, row22, row23, row24, row25, row26, row27, row28, row29, row30,
-                row31, row32, row33, row34, row35, row36, row37, row38, row39, row40, row41, row42, row43, row44, row45,
-                row46, row47, row48, row49, row50, row51, row52, row53, row54, row55, row56, row57, row58, row59, row60,
-                row61, row62, row63, row64, row65, row66, row67, row68, row69, row70, row71, row72, row73, row74, row75,
-                row76, row77, row78, row79, row80, row81, row82, row83, row84, row85, row86, row87, row88, row89, row90,
-                row91, row92, row93, row94, row95, row96, row97, row98, row99, row100, row101, row102, row103, row104,
-                row105, row106, row107, row108, row109, row110, row111, row112, row113, row114, row115 };
+        int currState = 0;
+        pair<int ,vector<LRitem>> states;
+
+        vector<string> row = {};
+        vector<LRitem> stateRules = {};
+        int dotIndex = 0;
+        LRitem firstItem = {startRule, dotIndex};
+
     }
 
-    void initRules() {
-        pair<string, vector<string>> rule1 = {"expr", {"opAnd", "SEMICOLON"}};
-        pair<string, vector<string>> rule2 = {"expr", {"opAnd", "SEMICOLON", "expr"}};
-        pair<string, vector<string>> rule3 = {"expr", {"variableDefinition", "expr"}};
-        pair<string, vector<string>> rule4 = {"expr", {"variableDeclaration", "SEMICOLON", "expr"}};
-        pair<string, vector<string>> rule5 = {"expr", {"assignmentStatement", "SEMICOLON", "expr"}};
-        pair<string, vector<string>> rule6 = {"expr", {"ε"}}; // epsilon
-        pair<string, vector<string>> rule7 = {"opAnd", {"opAnd", "AND", "opOr"}};
-        pair<string, vector<string>> rule8 = {"opAnd", {"opOr"}};
-        pair<string, vector<string>> rule9 = {"opOr", {"opOr", "OR", "opCompare"}};
-        pair<string, vector<string>> rule10 = {"opOr", {"opCompare"}};
-        pair<string, vector<string>> rule11 = {"opCompare", {"opCompare", "ISEQUAL", "opAddOrSub"}};
-        pair<string, vector<string>> rule12 = {"opCompare", {"opCompare", "SET", "opAddOrSub"}};
-        pair<string, vector<string>> rule13 = {"opCompare", {"opCompare", "GET", "opAddOrSub"}};
-        pair<string, vector<string>> rule14 = {"opCompare", {"opCompare", "NET", "opAddOrSub"}};
-        pair<string, vector<string>> rule15 = {"opCompare", {"opCompare", "ST", "opAddOrSub"}};
-        pair<string, vector<string>> rule16 = {"opCompare", {"opCompare", "GT", "opAddOrSub"}};
-        pair<string, vector<string>> rule17 = {"opCompare", {"opAddOrSub"}};
-        pair<string, vector<string>> rule18 = {"opAddOrSub", {"opAddOrSub", "PLUS", "opMultOrDiv"}};
-        pair<string, vector<string>> rule19 = {"opAddOrSub", {"opAddOrSub", "MINUS", "opMultOrDiv"}};
-        pair<string, vector<string>> rule20 = {"opAddOrSub", {"opMultOrDiv"}};
-        pair<string, vector<string>> rule21 = {"opMultOrDiv", {"opMultOrDiv", "MULTIPLY", "opUnary"}};
-        pair<string, vector<string>> rule22 = {"opMultOrDiv", {"opMultOrDiv", "DIVIDE", "opUnary"}};
-        pair<string, vector<string>> rule23 = {"opMultOrDiv", {"opMultOrDiv", "REMINDER", "opUnary"}};
-        pair<string, vector<string>> rule24 = {"opMultOrDiv", {"opUnary"}};
-        pair<string, vector<string>> rule25 = {"opUnary", {"PLUS", "brackets"}};
-        pair<string, vector<string>> rule26 = {"opUnary", {"MINUS", "brackets"}};
-        pair<string, vector<string>> rule27 = {"opUnary", {"NOT", "brackets"}};
-        pair<string, vector<string>> rule28 = {"opUnary", {"brackets"}};
-        pair<string, vector<string>> rule29 = {"brackets", {"OPENPARENT", "opAnd", "CLOSINGPARENT"}};
-        pair<string, vector<string>> rule30 = {"brackets", {"dataTypes"}};
-        pair<string, vector<string>> rule31 = {"variableDefinition", {"variableDeclaration", "EQUAL", "opAnd", "SEMICOLON"}};
-        pair<string, vector<string>> rule32 = {"variableDeclaration", {"constWord", "nameIdentifier"}};
-        pair<string, vector<string>> rule33 = {"assignmentStatement", {"ID", "EQUAL", "opAddOrSub"}};
-        pair<string, vector<string>> rule34 = {"constWord", {"CONST", "reservedWord"}};
-        pair<string, vector<string>> rule35 = {"constWord", {"reservedWord"}};
-        pair<string, vector<string>> rule36 = {"reservedWord", {"KEYWORD"}};
-        pair<string, vector<string>> rule37 = {"dataTypes", {"INT"}};
-        pair<string, vector<string>> rule38 = {"dataTypes", {"FLOAT"}};
-        pair<string, vector<string>> rule39 = {"dataTypes", {"CHAR"}};
-        pair<string, vector<string>> rule40 = {"dataTypes", {"ID"}};
-        rules = {rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10,
-                 rule11, rule12, rule13, rule14, rule15, rule16, rule17, rule18, rule19, rule20,
-                 rule21, rule22, rule23, rule24, rule25, rule26, rule27, rule28, rule29, rule30,
-                 rule31, rule32, rule33, rule34, rule35, rule36, rule37, rule38, rule39, rule40};
+    void initRules(const string& CFG) {
+        ifstream input(CFG);
+        json j;
+        input >> j;
+        json& productions = j["Productions"];
+
+        for(auto & production : productions){
+            string head = production["head"];
+            vector<string> body = production["body"];
+            Rule rule = {head, body};
+            rules.push_back(rule);
+        }
+        startRule = rules[0];
+        for(const auto & i : j["Variables"])
+            variables.push_back(i);
+        for(const auto & i : j["Terminals"])
+            terminals.push_back(i);
     }
 
     int getPopCount(int reducedRule) {
@@ -219,33 +114,27 @@ public:
         string symbol = rules[reducedRule - 1].first;
 
         if (symbol == "expr") {
-            return 25;
-        } else if (symbol == "opAnd") {
-            return 26;
-        } else if (symbol == "opOr") {
-            return 27;
-        } else if (symbol == "opCompare") {
-            return 28;
-        } else if (symbol == "opAddOrSub") {
-            return 29;
+            return 16;
+        }else if (symbol == "opAddOrSub") {
+            return 17;
         } else if (symbol == "opMultOrDiv") {
-            return 30;
+            return 18;
         } else if (symbol == "opUnary") {
-            return 31;
+            return 19;
         } else if (symbol == "brackets") {
-            return 32;
+            return 20;
         }else if (symbol == "variableDefinition") {
-            return 33;
+            return 21;
         }else if (symbol == "variableDeclaration") {
-            return 34;
+            return 22;
         }else if (symbol == "assignmentStatement") {
-            return 35;
+            return 23;
         }else if (symbol == "constWord") {
-            return 36;
+            return 24;
         }else if (symbol == "reservedWord") {
-            return 37;
+            return 25;
         }else if (symbol == "dataTypes") {
-            return 38;
+            return 26;
         }else {
             cerr << "Unknown symbol: " << symbol << endl;
             return -1;
@@ -274,32 +163,14 @@ public:
             return 9;
         }else if (token.type == REMINDER) {
             return 10;
-        }else if (token.type == AND) {
-            return 11;
-        }else if (token.type == OR) {
-            return 12;
-        }else if (token.type == ISEQUAL) {
-            return 13;
-        }else if (token.type == ST) {
-            return 14;
-        }else if (token.type == GT) {
-            return 15;
-        }else if (token.type == SET) {
-            return 16;
-        }else if (token.type == GET) {
-            return 17;
-        }else if (token.type == NOT) {
-            return 18;
-        }else if (token.type == NET) {
-            return 19;
         }else if (token.type == SEMICOLON) {
-            return 20;
+            return 11;
         }else if (token.type == CONST) {
-            return 21;
+            return 12;
         }else if (token.type == OPENPARENT) {
-            return 22;
+            return 13;
         }else if (token.type == CLOSINGPARENT) {
-            return 23;
+            return 14;
         }else {
             cerr << "Unknown token type: " << token.type << endl;
             return -1;
@@ -338,4 +209,3 @@ public:
         return false;
     }
 };
-

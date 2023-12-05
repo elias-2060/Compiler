@@ -6,12 +6,15 @@
 #include <vector>
 #include <stack>
 #include <queue>
+#include <fstream>
+#include "json.hpp"
 using namespace std;
+using json = nlohmann::json;
 
 // Token types
 enum TokenType {
-    ID, KEYWORD, CHAR, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER, AND, OR, ISEQUAL, ST, GT,
-    SET, GET, NOT, NET, SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT
+    ID, KEYWORD, CHAR, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER,
+    SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT
 };
 
 // Token structure
@@ -113,58 +116,7 @@ public:
                         tokens.push({SEMICOLON, ";"});
                         break;
                     case '=':
-                        // Check for "==" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push({ISEQUAL, "=="});
-                            pos++;
-                        } else {
-                            tokens.push({EQUAL, "="});
-                        }
-                        break;
-                    case '<':
-                        // Check for "<=" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push({SET, "<="});
-                            pos++;
-                        } else {
-                            tokens.push({ST, "<"});
-                        }
-                        break;
-                    case '>':
-                        // Check for ">=" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push({GET, ">="});
-                            pos++;
-                        } else {
-                            tokens.push({GT, ">"});
-                        }
-                        break;
-                    case '!':
-                        // Check for "!=" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '=') {
-                            tokens.push({NET, "!="});
-                            pos++;
-                        } else {
-                            tokens.push({NOT, "!"});
-                        }
-                        break;
-                    case '&':
-                        // Check for "&&" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '&') {
-                            tokens.push({AND, "&&"});
-                            pos++;
-                        } else {
-                            cerr << "syntaxError: Expected second '&' for '&&' operator at position " << pos << endl;
-                        }
-                        break;
-                    case '|':
-                        // Check for "||" operator
-                        if (pos + 1 < input.length() && input[pos + 1] == '|') {
-                            tokens.push({OR, "||"});
-                            pos++;
-                        } else {
-                            cerr << "syntaxError: Expected second '|' for '||' operator at position " << pos << endl;
-                        }
+                        tokens.push({EQUAL, "="});
                         break;
                     case '(':
                         tokens.push({OPENPARENT, "("});

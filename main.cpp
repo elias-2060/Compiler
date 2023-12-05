@@ -1,8 +1,6 @@
 //
 // Created by elias on 26/11/2023.
 //
-#include "Lexer.cpp"
-#include <fstream>
 #include "lrParser.cpp"
 
 string inputFile(const string& fileName){
@@ -30,10 +28,10 @@ int main (){
     queue<Token> printTokens = lexer.getTokens();
 
     // Create parser
-    Parser parser;
+    Parser parser("CFG.json");
 
     // Parse tokens
-    parser.parse(tokens);
+    //parser.parse(tokens);
 
     // Print tokens
     for (int i = 0; i < printTokens.size(); i++) {
