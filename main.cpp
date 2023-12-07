@@ -29,16 +29,17 @@ int main (){
 
     // Create parser
     Parser parser("CFG.json");
+    parser.printTable();
 
     // Parse tokens
     //parser.parse(tokens);
 
     // Print tokens
-    for (int i = 0; i < printTokens.size(); i++) {
-        Token token = printTokens.front();
-        cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << endl;
-        printTokens.pop();
-    }
+    //for (int i = 0; i < printTokens.size(); i++) {
+    //    Token token = printTokens.front();
+    //    cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << endl;
+    //    printTokens.pop();
+    //}
 
     return 0;
 }

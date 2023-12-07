@@ -32,6 +32,7 @@ private:
     vector<Rule> closures;
     vector<Rule> follows;
     vector<vector<string>> parseTable;
+    int rowSize;
     vector<Rule> rules;
     Rule startRule;
     vector<string> variables;
@@ -41,50 +42,239 @@ public:
     explicit Parser(const string& CFG){
         parseStack.push(0);
         initRules(CFG);
-        initClosure();
+        rowSize = variables.size() + terminals.size();
         initFolow();
         initParseTable();
-
     }
-    void initClosure(){
-        Rule closure0 = {"expr'", {"expr"}};
-        Rule closure1 = {"expr", {"opAddOrSub", "variableDefinition", "variableDeclaration", "assignmentStatement"}};
-        Rule closure2 = {"opAddOrSub", {"opMultOrDiv"}};
-        Rule closure3 = {"opMultOrDiv", {"opUnary"}};
-        Rule closure4 = {"opUnary", {"brackets"}};
-        Rule closure5 = {"brackets", {"dataTypes"}};
-        Rule closure6 = {"variableDefinition", {"variableDeclaration"}};
-        Rule closure7 = {"variableDeclaration", {"constWord"}};
-        Rule closure8 = {"assignmentStatement", {}};
-        Rule closure9 = {"constWord", {"reservedWord"}};
-        Rule closure10 = {"reservedWord", {}};
-        Rule closure11 = {"dataTypes", {}};
-        closures = {closure0, closure1, closure2, closure3, closure4, closure5, closure6, closure7, closure8, closure9, closure10, closure11};
-    }
-
     void initFolow(){
-        Rule follow0 = {"expr", {"$"}};
-        Rule follow1 = {"opAddOrSub", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT"}};
-        Rule follow2 = {"opMultOrDiv", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
-        Rule follow3 = {"opUnary", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
-        Rule follow4 = {"brackets", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
-        Rule follow5 = {"variableDefinition", {"PLUS", "MINUS", "OPENPARENT", "INT", "FLOAT", "CHAR", "ID", "CONST", "KEYWORD", "$"}};
-        Rule follow6 = {"variableDeclaration", {"SEMICOLON", "EQUAL"}};
-        Rule follow7 = {"assignmentStatement", {"SEMICOLON"}};
-        Rule follow8 = {"constWord", {"ID"}};
-        Rule follow9 = {"reservedWord", {"ID"}};
-        Rule follow10 = {"dataTypes", {"SEMICOLON", "PLUS", "MINUS", "CLOSINGPARENT", "MULTIPLY", "DIVIDE", "REMINDER"}};
-        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8, follow9, follow10};
+        Rule follow0 = {"A", {"$", "CLOSINGPARENT"}};
+        follows = {follow0};
+    }
+
+    void doClosure(vector<LRitem> & v){
+        vector<LRitem> temp;
+        for (int i = 0; i < v.size(); ++i) {
+            bool check = false;
+            string currSymbol;
+            if (v[i].second != v[i].first.second.size()) {
+                currSymbol = v[i].first.second[v[i].second];
+                for (const auto &variable: variables) {
+                    if (currSymbol == variable) {
+                        check = true;
+                        break;
+                    }
+                }
+            }
+            if (check){
+                for (auto & rule : rules) {
+                    if (rule.first == currSymbol){
+                        LRitem item;
+                        if (rule.second[0] == "ε") {
+                            item = {rule, 1};
+                        } else
+                            item = {rule, 0};
+                        temp.push_back(item);
+                    }
+                }
+            }
+        }
+        if (!temp.empty())
+            doClosure(temp);
+        for (auto & i : temp) {
+            bool check = false;
+            for (auto & j : v) {
+                if (i.first == j.first && i.second == j.second){
+                    check = true;
+                    break;
+                }
+            }
+            if (!check)
+                v.push_back(i);
+        }
+    }
+    int getIndex(const string& element, const string& type){
+        if (element == "$")
+            return terminals.size();
+        else {
+            if (type == "terminal") {
+                for (int i = 0; i < terminals.size(); ++i) {
+                    if (element == terminals[i])
+                        return i;
+                }
+            } else if (type == "variable") {
+                for (int i = 0; i < variables.size(); ++i) {
+                    if (element == variables[i]) {
+                        return i + terminals.size();
+                    }
+                }
+            } else
+                cerr << "Unknown type: " << type << endl;
+        }
+    }
+    int getRuleIndex(const Rule& rule){
+        auto it = find(rules.begin(), rules.end(), rule);
+
+        // If element was found
+        if (it != rules.end()){
+
+            // calculating the index
+            // of K
+            int index = it - rules.begin();
+            return index;
+        }
+        else {
+            // If the element is not
+            // present in the vector
+            return -1;
+        }
     }
     void initParseTable() {
-        int currState = 0;
-        pair<int ,vector<LRitem>> states;
+        vector<pair<int ,vector<LRitem>>> states;
+        vector<pair<int ,vector<LRitem>>> copyStates;
+        LRitem firstItem = {startRule, 0};
+        pair<int ,vector<LRitem>> state = {0, {firstItem}};
+        states.push_back(state);
+        copyStates.push_back(state);
+        int currStateIndex = 0;
 
-        vector<string> row = {};
-        vector<LRitem> stateRules = {};
-        int dotIndex = 0;
-        LRitem firstItem = {startRule, dotIndex};
+        while (!states.empty()){
+            vector<string> row = {};
+            for (int i = 0; i < rowSize; ++i) {
+                row.emplace_back("");
+            }
+            int currState = states.front().first;
+            vector<LRitem> currStateRules = states.front().second;
+            doClosure(currStateRules);
+            vector<pair<string, int>> transitions;
+            for (auto & currStateRule : currStateRules){
+                int dotIndex = currStateRule.second;
 
+                // Reduce
+                if (currStateRule.first.second.size() == dotIndex){
+                    string symbol = currStateRule.first.first;
+                    int ruleIndex = getRuleIndex(currStateRule.first);
+                    if (ruleIndex == 0){
+                        int testIndex = getIndex("$", "terminal");
+                        if (row[testIndex].empty()) {
+                            row[testIndex] = "acc";
+                        } else {
+                            cerr << "Conflict in state " << currState << " for symbol " << "$" << endl;
+                        }
+                    }
+                    else {
+                        for (auto &i: follows) {
+                            if (i.first == symbol) {
+                                for (const auto &follow: i.second) {
+                                    int index = getIndex(follow, "terminal");
+                                    if (row[index].empty()) {
+                                        row[index] = "R" + to_string(ruleIndex);
+                                    } else {
+                                        cerr << "Conflict in state " << currState << " for symbol " << follow << endl;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Shift or Goto
+                else{
+                    string symbol = currStateRule.first.second[dotIndex];
+                    bool isVar = false;
+                    bool isTerm = false;
+                    for (const auto & variable : variables) {
+                        if (symbol == variable){
+                            isVar = true;
+                            break;
+                        }
+                    }
+                    for (const auto & terminal : terminals) {
+                        if (symbol == terminal){
+                            isTerm = true;
+                            break;
+                        }
+                    }
+                    bool check = false;
+                    int stateIndex;
+                    for (const auto & transition : transitions) {
+                        if (symbol == transition.first){
+                            check = true;
+                            stateIndex = transition.second;
+                            break;
+                        }
+                    }
+                    if (check){
+                        for (auto & s : states) {
+                            if (s.first == stateIndex){
+                                s.second.push_back(currStateRule);
+                                break;
+                            }
+                        }
+                    }else{
+                        bool found = false;
+                        int tempIndex = 0;
+                        for (auto & copyState : copyStates) {
+                            LRitem item = {currStateRule.first, currStateRule.second + 1};
+                            if (copyState.second.front() == item){
+                                found = true;
+                                tempIndex = copyState.first;
+                                break;
+                            }
+                        }
+                        if (!found)
+                            currStateIndex++;
+                        if (!found)
+                            transitions.emplace_back(symbol, currStateIndex);
+                        else
+                            transitions.emplace_back(symbol, tempIndex);
+                        if (!found) {
+                            currStateRule.second++;
+                            pair<int, vector<LRitem>> newState = {currStateIndex, {currStateRule}};
+                            states.push_back(newState);
+                            copyStates.push_back(newState);
+                        }
+                        int index;
+                        if (isVar)
+                            index = getIndex(symbol, "variable");
+                        else if (isTerm)
+                            index = getIndex(symbol, "terminal");
+                        else
+                            cerr << "Unknown symbol: " << symbol << endl;
+                        if (row[index].empty()) {
+                            if (isTerm) {
+                                if (!found)
+                                    row[index] = "S" + to_string(currStateIndex);
+                                else
+                                    row[index] = "S" + to_string(tempIndex);
+                            }
+                            else if (isVar) {
+                                if (!found)
+                                    row[index] = to_string(currStateIndex);
+                                else
+                                    row[index] = to_string(tempIndex);
+                            }
+                            else
+                                cerr << "Unknown symbol: " << symbol << endl;
+                        }else{
+                            cerr << "Conflict in state " << currState << " for symbol " << symbol << endl;
+                        }
+                    }
+                }
+            }
+            states.erase(states.begin());
+            parseTable.push_back(row);
+        }
+    }
+
+    void printTable(){
+        for (int i = 0; i < parseTable.size(); ++i) {
+            for (int j = 0; j < parseTable[i].size(); ++j) {
+                if (!parseTable[i][j].empty())
+                    cout << parseTable[i][j] << " ";
+                else
+                    cout << "- ";
+            }
+            cout << endl;
+        }
     }
 
     void initRules(const string& CFG) {
@@ -113,8 +303,8 @@ public:
     int getReducedSymbol(int reducedRule) {
         string symbol = rules[reducedRule - 1].first;
 
-        if (symbol == "expr") {
-            return 16;
+        if (symbol == "A") {
+            return 4;
         }else if (symbol == "opAddOrSub") {
             return 17;
         } else if (symbol == "opMultOrDiv") {
@@ -143,9 +333,9 @@ public:
     static int getSymbol(const Token& token) {
         if (token.type == ID) {
             return 0;
-        } else if (token.type == KEYWORD) {
+        } else if (token.type == OPENPARENT) {
             return 1;
-        } else if (token.type == CHAR) {
+        } else if (token.type == CLOSINGPARENT) {
             return 2;
         } else if (token.type == INT) {
             return 3;
@@ -167,9 +357,9 @@ public:
             return 11;
         }else if (token.type == CONST) {
             return 12;
-        }else if (token.type == OPENPARENT) {
+        }else if (token.type == KEYWORD) {
             return 13;
-        }else if (token.type == CLOSINGPARENT) {
+        }else if (token.type == CHAR) {
             return 14;
         }else {
             cerr << "Unknown token type: " << token.type << endl;

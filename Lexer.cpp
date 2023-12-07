@@ -8,13 +8,14 @@
 #include <queue>
 #include <fstream>
 #include "json.hpp"
+#include "iomanip"
 using namespace std;
 using json = nlohmann::json;
 
 // Token types
 enum TokenType {
     ID, KEYWORD, CHAR, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER,
-    SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT
+    SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT,
 };
 
 // Token structure
