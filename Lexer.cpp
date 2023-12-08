@@ -9,19 +9,21 @@
 #include <fstream>
 #include "json.hpp"
 #include "iomanip"
+#include <map>
 using namespace std;
 using json = nlohmann::json;
 
 // Token types
 enum TokenType {
     ID, KEYWORD, CHAR, INT, FLOAT, PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, REMINDER,
-    SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT,
+    SEMICOLON, CONST, OPENPARENT, CLOSINGPARENT, DOLLAR
 };
 
 // Token structure
 struct Token {
     TokenType type;
     string lexeme;
+    string stringType;
 };
 
 class Lexer{
@@ -49,13 +51,13 @@ public:
 
                 // Check if it's a keyword
                 if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "string"){
-                    tokens.push({KEYWORD, lexeme});
+                    tokens.push({KEYWORD, lexeme, "KEYWORD"});
                 }
                 else if(lexeme == "const"){
-                    tokens.push({CONST, lexeme});
+                    tokens.push({CONST, lexeme, "CONST"});
                 }
                 else {
-                    tokens.push({ID, lexeme});
+                    tokens.push({ID, lexeme, "ID"});
                 }
             }
             // Integers and Floats
@@ -72,9 +74,9 @@ public:
 
                 string lexeme = input.substr(start, pos - start);
                 if (isFloat) {
-                    tokens.push({FLOAT, lexeme});
+                    tokens.push({FLOAT, lexeme, "FLOAT"});
                 } else {
-                    tokens.push({INT, lexeme});
+                    tokens.push({INT, lexeme, "INT"});
                 }
             }
             // Chars
@@ -84,7 +86,7 @@ public:
                     std::string lexeme = "'";
                     lexeme += input[pos];
                     lexeme += "'";
-                    tokens.push({CHAR, lexeme});
+                    tokens.push({CHAR, lexeme, "CHAR"});
                     pos++;
                     if (pos < input.length() && input[pos] == '\'') {
                         pos++;
@@ -99,31 +101,31 @@ public:
             else {
                 switch (currentChar) {
                     case '+':
-                        tokens.push({PLUS, "+"});
+                        tokens.push({PLUS, "+", "PLUS"});
                         break;
                     case '-':
-                        tokens.push({MINUS, "-"});
+                        tokens.push({MINUS, "-", "MINUS"});
                         break;
                     case '*':
-                        tokens.push({MULTIPLY, "*"});
+                        tokens.push({MULTIPLY, "*", "MULTIPLY"});
                         break;
                     case '/':
-                        tokens.push({DIVIDE, "/"});
+                        tokens.push({DIVIDE, "/", "DIVIDE"});
                         break;
                     case '%':
-                        tokens.push({REMINDER, "%"});
+                        tokens.push({REMINDER, "%", "REMINDER"});
                         break;
                     case ';':
-                        tokens.push({SEMICOLON, ";"});
+                        tokens.push({SEMICOLON, ";", "SEMICOLON"});
                         break;
                     case '=':
-                        tokens.push({EQUAL, "="});
+                        tokens.push({EQUAL, "=", "EQUAL"});
                         break;
                     case '(':
-                        tokens.push({OPENPARENT, "("});
+                        tokens.push({OPENPARENT, "(", "OPENPARENT"});
                         break;
                     case ')':
-                        tokens.push({CLOSINGPARENT, ")"});
+                        tokens.push({CLOSINGPARENT, ")", "CLOSINGPARENT"});
                         break;
                     default:
                         cerr << "syntaxError: Unrecognized character at position " << pos << endl;
@@ -133,6 +135,7 @@ public:
                 pos++;
             }
         }
+        tokens.push({DOLLAR, "$", "DOLLAR"});
     }
 
     queue<Token> getTokens(){

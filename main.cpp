@@ -26,20 +26,20 @@ int main (){
 
     // Get the tokens to print
     queue<Token> printTokens = lexer.getTokens();
-
-    // Create parser
-    Parser parser("CFG.json");
-    parser.printTable();
-
-    // Parse tokens
-    //parser.parse(tokens);
-
     // Print tokens
-    //for (int i = 0; i < printTokens.size(); i++) {
+    //int tokenSize = printTokens.size();
+    //for (int i = 0; i < tokenSize; i++) {
     //    Token token = printTokens.front();
     //    cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << endl;
     //    printTokens.pop();
     //}
+
+    // Create parser
+    Parser parser("CFG.json");
+    //parser.printTable();
+
+    // Parse tokens
+    //cout << parser.parse(tokens) << endl;
 
     return 0;
 }

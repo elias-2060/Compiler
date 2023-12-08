@@ -47,21 +47,33 @@ public:
         initParseTable();
     }
     void initFolow(){
-        Rule follow0 = {"A", {"$", "CLOSINGPARENT"}};
-        follows = {follow0};
+        Rule follow0 = {"S", {"$"}};
+        Rule follow1 = {"E", {"PLUS", "MINUS", "SEMICOLON"}};
+        Rule follow2 = {"T", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "REMINDER", "MULTIPLY"}};
+        Rule follow3 = {"F", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "REMINDER", "MULTIPLY"}};
+        follows = {follow0, follow1, follow2, follow3};
     }
 
-    void doClosure(vector<LRitem> & v){
+    void doClosure(vector<LRitem>& v, vector<string>& done){
         vector<LRitem> temp;
-        for (int i = 0; i < v.size(); ++i) {
+        for (auto & i : v) {
             bool check = false;
             string currSymbol;
-            if (v[i].second != v[i].first.second.size()) {
-                currSymbol = v[i].first.second[v[i].second];
-                for (const auto &variable: variables) {
-                    if (currSymbol == variable) {
-                        check = true;
+            if (i.second != i.first.second.size()) {
+                currSymbol = i.first.second[i.second];
+                bool checkDone = false;
+                for (const auto & j : done) {
+                    if (currSymbol == j) {
+                        checkDone = true;
                         break;
+                    }
+                }
+                if (!checkDone) {
+                    for (const auto &variable: variables) {
+                        if (currSymbol == variable) {
+                            check = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -69,7 +81,7 @@ public:
                 for (auto & rule : rules) {
                     if (rule.first == currSymbol){
                         LRitem item;
-                        if (rule.second[0] == "ε") {
+                        if (rule.second[0] == "epsilon") {
                             item = {rule, 1};
                         } else
                             item = {rule, 0};
@@ -77,9 +89,11 @@ public:
                     }
                 }
             }
+            done.push_back(currSymbol);
         }
-        if (!temp.empty())
-            doClosure(temp);
+        if (!temp.empty()) {
+            doClosure(temp, done);
+        }
         for (auto & i : temp) {
             bool check = false;
             for (auto & j : v) {
@@ -136,7 +150,6 @@ public:
         states.push_back(state);
         copyStates.push_back(state);
         int currStateIndex = 0;
-
         while (!states.empty()){
             vector<string> row = {};
             for (int i = 0; i < rowSize; ++i) {
@@ -144,11 +157,23 @@ public:
             }
             int currState = states.front().first;
             vector<LRitem> currStateRules = states.front().second;
-            doClosure(currStateRules);
+            vector <string> done;
+            doClosure(currStateRules, done);
             vector<pair<string, int>> transitions;
+            cout << "State " << currState << endl;
+            for (auto & currStateRule : currStateRules) {
+                cout << currStateRule.first.first << " -> ";
+                for (int i = 0; i < currStateRule.first.second.size(); ++i) {
+                    if (i == currStateRule.second)
+                        cout << ". ";
+                    cout << currStateRule.first.second[i] << " ";
+                }
+                if (currStateRule.second == currStateRule.first.second.size())
+                    cout << ". ";
+                cout << endl;
+            }
             for (auto & currStateRule : currStateRules){
                 int dotIndex = currStateRule.second;
-
                 // Reduce
                 if (currStateRule.first.second.size() == dotIndex){
                     string symbol = currStateRule.first.first;
@@ -205,6 +230,7 @@ public:
                     if (check){
                         for (auto & s : states) {
                             if (s.first == stateIndex){
+                                currStateRule.second++;
                                 s.second.push_back(currStateRule);
                                 break;
                             }
@@ -266,10 +292,10 @@ public:
     }
 
     void printTable(){
-        for (int i = 0; i < parseTable.size(); ++i) {
-            for (int j = 0; j < parseTable[i].size(); ++j) {
-                if (!parseTable[i][j].empty())
-                    cout << parseTable[i][j] << " ";
+        for (auto & i : parseTable) {
+            for (const auto & j : i) {
+                if (!j.empty())
+                    cout << j << " ";
                 else
                     cout << "- ";
             }
@@ -283,6 +309,9 @@ public:
         input >> j;
         json& productions = j["Productions"];
 
+        string start = j["Start"];
+        string augmentedStart = start + "'";
+        rules.push_back({augmentedStart, {start}});
         for(auto & production : productions){
             string head = production["head"];
             vector<string> body = production["body"];
@@ -290,6 +319,7 @@ public:
             rules.push_back(rule);
         }
         startRule = rules[0];
+        variables.push_back(augmentedStart);
         for(const auto & i : j["Variables"])
             variables.push_back(i);
         for(const auto & i : j["Terminals"])
@@ -297,73 +327,30 @@ public:
     }
 
     int getPopCount(int reducedRule) {
-        return rules[reducedRule - 1].second.size();
+        int count = rules[reducedRule].second.size();
+
+        return count;
     }
 
     int getReducedSymbol(int reducedRule) {
-        string symbol = rules[reducedRule - 1].first;
-
-        if (symbol == "A") {
-            return 4;
-        }else if (symbol == "opAddOrSub") {
-            return 17;
-        } else if (symbol == "opMultOrDiv") {
-            return 18;
-        } else if (symbol == "opUnary") {
-            return 19;
-        } else if (symbol == "brackets") {
-            return 20;
-        }else if (symbol == "variableDefinition") {
-            return 21;
-        }else if (symbol == "variableDeclaration") {
-            return 22;
-        }else if (symbol == "assignmentStatement") {
-            return 23;
-        }else if (symbol == "constWord") {
-            return 24;
-        }else if (symbol == "reservedWord") {
-            return 25;
-        }else if (symbol == "dataTypes") {
-            return 26;
-        }else {
-            cerr << "Unknown symbol: " << symbol << endl;
-            return -1;
+        string symbol = rules[reducedRule].first;
+        for (int i = 0; i < variables.size(); ++i) {
+            if (symbol == variables[i])
+                return i + terminals.size();
         }
+        cerr << "Unknown symbol: " << symbol << endl;
     }
-    static int getSymbol(const Token& token) {
-        if (token.type == ID) {
-            return 0;
-        } else if (token.type == OPENPARENT) {
-            return 1;
-        } else if (token.type == CLOSINGPARENT) {
-            return 2;
-        } else if (token.type == INT) {
-            return 3;
-        } else if (token.type == FLOAT) {
-            return 4;
-        } else if (token.type == PLUS) {
-            return 5;
-        } else if (token.type == MINUS) {
-            return 6;
-        } else if (token.type == MULTIPLY) {
-            return 7;
-        }else if (token.type == DIVIDE) {
-            return 8;
-        }else if (token.type == EQUAL) {
-            return 9;
-        }else if (token.type == REMINDER) {
-            return 10;
-        }else if (token.type == SEMICOLON) {
-            return 11;
-        }else if (token.type == CONST) {
-            return 12;
-        }else if (token.type == KEYWORD) {
-            return 13;
-        }else if (token.type == CHAR) {
-            return 14;
-        }else {
-            cerr << "Unknown token type: " << token.type << endl;
-            return -1;
+    int getSymbol(const Token& token) {
+        string tokenType = token.stringType;
+        if (tokenType == "DOLLAR"){
+            return terminals.size();
+        }
+        else{
+            for (int i = 0; i < terminals.size(); ++i) {
+                if (tokenType == terminals[i])
+                    return i;
+            }
+            cerr << "Unknown token type: " << tokenType << endl;
         }
     }
 
@@ -375,24 +362,27 @@ public:
 
             if (action[0] == 'S') {
                 // Shift
-                parseStack.push(static_cast<int>(action[1]));
+                int intAction = action[1] - '0';
+                parseStack.push(intAction);
                 inputQueue.pop();
             } else if (action[0] == 'R') {
                 // Reduce
-                int rule = static_cast<int>(action[1]);
+                int rule = action[1] - '0';
                 int popCount = getPopCount(rule);
-                for (int i = 0; i < 2 * popCount; ++i) {
+                cout << parseStack.size() << endl;
+                for (int i = 0; i < popCount; ++i) {
                     parseStack.pop();
                 }
                 int newState = stoi(parseTable[parseStack.top()][getReducedSymbol(rule)]);
-                parseStack.push(getReducedSymbol(rule));
                 parseStack.push(newState);
             } else if (action == "acc") {
                 // Accept
                 return true;
-            } else {
+            }else if (action.empty()){
+                return false;
+            }else {
                 // Error
-                //handleParsingError();
+                cout << "Error in state " << currentState << " for symbol " << inputQueue.front().lexeme << endl;
                 break;
             }
         }

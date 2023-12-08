@@ -1,10 +1,17 @@
 {
-  "Variables": ["A'", "A"],
-  "Terminals": ["ID", "OPENPARENT", "CLOSINGPARENT"],
+  "Variables": ["S", "E", "T", "F"],
+  "Terminals": ["ID", "PLUS", "MINUS", "DIVIDE", "REMINDER", "SEMICOLON", "MULTIPLY"],
   "Productions": [
-    {"head": "A'", "body": ["A"]},
-    {"head": "A", "body": ["OPENPARENT", "A", "CLOSINGPARENT"]},
-    {"head": "A", "body": ["ID"]}
+    {"head": "S", "body": ["E", "SEMICOLON", "S"]},
+    {"head": "S", "body": ["E", "SEMICOLON"]},
+    {"head": "E", "body": ["E", "PLUS", "T"]},
+    {"head": "E", "body": ["E", "MINUS", "T"]},
+    {"head": "E", "body": ["T"]},
+    {"head": "T", "body": ["T", "MULTIPLY", "F"]},
+    {"head": "T", "body": ["T", "DIVIDE", "F"]},
+    {"head": "T", "body": ["T", "REMINDER", "F"]},
+    {"head": "T", "body": ["F"]},
+    {"head": "F", "body": ["ID"]}
   ],
-  "Start": "A'"
+  "Start": "S"
 }
