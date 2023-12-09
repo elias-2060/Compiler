@@ -1,1 +1,15 @@
-a + b;
+-a / b;
+c * d;
+e + f;
+g - h;
+i % j;
+-k;
+(l + b) / c;
+-m * ((n + o) / p);
+-8 * (2 + 5.3) / s;
+'a';
+r = s;
+int h;
+const float v;
+char c = 'b';
+const float pi = 3.14;

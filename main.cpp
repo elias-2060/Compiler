@@ -39,7 +39,7 @@ int main (){
     //parser.printTable();
 
     // Parse tokens
-    //cout << parser.parse(tokens) << endl;
+    cout << parser.parse(tokens) << endl;
 
     return 0;
 }

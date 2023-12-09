@@ -47,11 +47,16 @@ public:
         initParseTable();
     }
     void initFolow(){
-        Rule follow0 = {"S", {"$"}};
-        Rule follow1 = {"E", {"PLUS", "MINUS", "SEMICOLON"}};
-        Rule follow2 = {"T", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "REMINDER", "MULTIPLY"}};
-        Rule follow3 = {"F", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "REMINDER", "MULTIPLY"}};
-        follows = {follow0, follow1, follow2, follow3};
+        Rule follow0 = {"expr", {"$"}};
+        Rule follow1 = {"opAddOrSub", {"PLUS", "MINUS", "SEMICOLON", "CLOSINGPARENT"}};
+        Rule follow2 = {"opMultOrDiv", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow3 = {"opUnary", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow4 = {"brackets", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow5 = {"dataType", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow6 = {"assignment", {"SEMICOLON"}};
+        Rule follow7 = {"declaration", {"SEMICOLON"}};
+        Rule follow8 = {"definition", {"SEMICOLON"}};
+        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8};
     }
 
     void doClosure(vector<LRitem>& v, vector<string>& done){
@@ -160,18 +165,6 @@ public:
             vector <string> done;
             doClosure(currStateRules, done);
             vector<pair<string, int>> transitions;
-            cout << "State " << currState << endl;
-            for (auto & currStateRule : currStateRules) {
-                cout << currStateRule.first.first << " -> ";
-                for (int i = 0; i < currStateRule.first.second.size(); ++i) {
-                    if (i == currStateRule.second)
-                        cout << ". ";
-                    cout << currStateRule.first.second[i] << " ";
-                }
-                if (currStateRule.second == currStateRule.first.second.size())
-                    cout << ". ";
-                cout << endl;
-            }
             for (auto & currStateRule : currStateRules){
                 int dotIndex = currStateRule.second;
                 // Reduce
@@ -362,14 +355,24 @@ public:
 
             if (action[0] == 'S') {
                 // Shift
-                int intAction = action[1] - '0';
+                int intAction;
+                if (action.size() == 2) {
+                    intAction = action[1] - '0';
+                } else {
+                    intAction = stoi(action.substr(1));
+                }
                 parseStack.push(intAction);
                 inputQueue.pop();
             } else if (action[0] == 'R') {
                 // Reduce
-                int rule = action[1] - '0';
+                int rule;
+                if (action.size() == 2){
+                    rule = action[1] - '0';
+                }
+                else{
+                    rule = stoi(action.substr(1));
+                }
                 int popCount = getPopCount(rule);
-                cout << parseStack.size() << endl;
                 for (int i = 0; i < popCount; ++i) {
                     parseStack.pop();
                 }

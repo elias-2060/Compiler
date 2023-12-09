@@ -50,7 +50,7 @@ public:
                 string lexeme = input.substr(start, pos - start);
 
                 // Check if it's a keyword
-                if (lexeme == "int" || lexeme == "float" || lexeme == "char" || lexeme == "string"){
+                if (lexeme == "int" || lexeme == "float" || lexeme == "char"){
                     tokens.push({KEYWORD, lexeme, "KEYWORD"});
                 }
                 else if(lexeme == "const"){
