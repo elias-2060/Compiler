@@ -24,22 +24,18 @@ int main (){
     // Get the tokens
     queue<Token> tokens = lexer.getTokens();
 
-    // Get the tokens to print
-    queue<Token> printTokens = lexer.getTokens();
-    // Print tokens
-    //int tokenSize = printTokens.size();
-    //for (int i = 0; i < tokenSize; i++) {
-    //    Token token = printTokens.front();
-    //    cout << "Type: " << token.type << ", Lexeme: " << token.lexeme << endl;
-    //    printTokens.pop();
-    //}
-
     // Create parser
     Parser parser("CFG.json");
     //parser.printTable();
 
-    // Parse tokens
-    cout << parser.parse(tokens) << endl;
+    // Parse de tokens
+    parser.parse(tokens);
+
+    // Get the CST
+    Node* cst = parser.getCST();
+
+    // Print the CST in dot formaat
+    parser.printTree(cst, "CST.dot");
 
     return 0;
 }

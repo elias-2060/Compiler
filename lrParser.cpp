@@ -6,24 +6,21 @@
 typedef pair<string, vector<string>> Rule;
 typedef pair<Rule, int> LRitem;
 
-class Node {
-private:
+struct Node {
     string value;
-public:
-    explicit Node(string v) {
-        this->value = v;
-    }
-
-    string getValue() {
-        return value;
-    }
-};
-
-class CST {
-private:
-    Node* node;
-    Node* parent;
     vector<Node*> children;
+
+    // Function to recursively print the tree in DOT format
+    void printDOT(ofstream& out) const {
+        // Print the current node
+        out << "  " << this << " [label=\"" << value << "\"];" << std::endl;
+
+        // Print edges to children
+        for (const auto& child : children) {
+            out << "  " << this << " -> " << child << ";" << std::endl;
+            child->printDOT(out);  // Recursive call for children
+        }
+    }
 };
 
 class Parser {
@@ -37,7 +34,7 @@ private:
     Rule startRule;
     vector<string> variables;
     vector<string> terminals;
-    CST root;
+    Node* cst;
 public:
     explicit Parser(const string& CFG){
         parseStack.push(0);
@@ -46,6 +43,10 @@ public:
         initFolow();
         initParseTable();
     }
+    Node* getCST(){
+        return cst;
+    }
+
     void initFolow(){
         Rule follow0 = {"expr", {"$"}};
         Rule follow1 = {"opAddOrSub", {"PLUS", "MINUS", "SEMICOLON", "CLOSINGPARENT"}};
@@ -53,10 +54,15 @@ public:
         Rule follow3 = {"opUnary", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
         Rule follow4 = {"brackets", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
         Rule follow5 = {"dataType", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow6 = {"assignment", {"SEMICOLON"}};
-        Rule follow7 = {"declaration", {"SEMICOLON"}};
-        Rule follow8 = {"definition", {"SEMICOLON"}};
-        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8};
+        Rule follow6 = {"identifier", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow7 = {"int", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow8 = {"float", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow9 = {"char", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
+        Rule follow10 = {"assignment", {"SEMICOLON"}};
+        Rule follow11 = {"declaration", {"SEMICOLON"}};
+        Rule follow12 = {"definition", {"SEMICOLON"}};
+        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8, follow9, follow10,
+                   follow11, follow12};
     }
 
     void doClosure(vector<LRitem>& v, vector<string>& done){
@@ -333,6 +339,7 @@ public:
         }
         cerr << "Unknown symbol: " << symbol << endl;
     }
+
     int getSymbol(const Token& token) {
         string tokenType = token.stringType;
         if (tokenType == "DOLLAR"){
@@ -348,11 +355,11 @@ public:
     }
 
     bool parse(queue<Token> inputQueue) {
+        stack<Node*> cstStack;  // Stack to track CST nodes
         while (!inputQueue.empty()) {
             int currentState = parseStack.top();
             int inputSymbol = getSymbol(inputQueue.front());
             string action = parseTable[currentState][inputSymbol];
-
             if (action[0] == 'S') {
                 // Shift
                 int intAction;
@@ -362,6 +369,10 @@ public:
                     intAction = stoi(action.substr(1));
                 }
                 parseStack.push(intAction);
+                // Create a CST node for the terminal
+                Node* terminalNode = new Node{inputQueue.front().lexeme};
+                cstStack.push(terminalNode);
+
                 inputQueue.pop();
             } else if (action[0] == 'R') {
                 // Reduce
@@ -372,13 +383,27 @@ public:
                 else{
                     rule = stoi(action.substr(1));
                 }
+                // Create a CST node for the non-terminal
+                Node* nonTerminalNode = new Node{rules[rule].first};
+
+                // Pop the corresponding number of states and nodes from the stacks
                 int popCount = getPopCount(rule);
                 for (int i = 0; i < popCount; ++i) {
                     parseStack.pop();
+                    nonTerminalNode->children.push_back(cstStack.top());
+                    cstStack.pop();
                 }
+                reverse(nonTerminalNode->children.begin(), nonTerminalNode->children.end());
+
+                // Determine the new state after reduction
                 int newState = stoi(parseTable[parseStack.top()][getReducedSymbol(rule)]);
                 parseStack.push(newState);
+
+                // Push the new non-terminal node onto the CST stack
+                cstStack.push(nonTerminalNode);
             } else if (action == "acc") {
+                // Retrieve the root of the CST
+                cst = cstStack.top();
                 // Accept
                 return true;
             }else if (action.empty()){
@@ -390,5 +415,26 @@ public:
             }
         }
         return false;
+    }
+    string addNodes(Node* node){
+        string result = to_string(reinterpret_cast<uintptr_t>(node)) + "[label=\"" + node->value + "\"] \n";
+        for (auto& child : node->children) {
+            result += addNodes(child);
+        }
+        return result;
+    }
+
+    string addConnections(Node* node){
+        string connections;
+        for (auto & i : node->children) {
+            connections += to_string(reinterpret_cast<uintptr_t>(node)) + " -- " + to_string(reinterpret_cast<uintptr_t>(i)) + "\n";
+            connections += addConnections(i);
+        }
+        return connections;
+    }
+    void printTree(Node* root, const string& filename) {
+        string graph = "graph ast { \n" + addNodes(root) + addConnections(root) + "}";
+        ofstream file(filename);
+        file << graph;
     }
 };
