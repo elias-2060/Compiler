@@ -9,18 +9,7 @@ typedef pair<Rule, int> LRitem;
 struct Node {
     string value;
     vector<Node*> children;
-
-    // Function to recursively print the tree in DOT format
-    void printDOT(ofstream& out) const {
-        // Print the current node
-        out << "  " << this << " [label=\"" << value << "\"];" << std::endl;
-
-        // Print edges to children
-        for (const auto& child : children) {
-            out << "  " << this << " -> " << child << ";" << std::endl;
-            child->printDOT(out);  // Recursive call for children
-        }
-    }
+    Node* parent;
 };
 
 class Parser {
@@ -28,6 +17,7 @@ private:
     stack<int> parseStack;
     vector<Rule> closures;
     vector<Rule> follows;
+    vector<Rule> followSets;
     vector<vector<string>> parseTable;
     int rowSize;
     vector<Rule> rules;
@@ -35,6 +25,7 @@ private:
     vector<string> variables;
     vector<string> terminals;
     Node* cst;
+    map<string, pair<bool, string>> symbolTable;
 public:
     explicit Parser(const string& CFG){
         parseStack.push(0);
@@ -45,6 +36,77 @@ public:
     }
     Node* getCST(){
         return cst;
+    }
+
+    Node* getAST(){
+        createAST(cst);
+        removeUselessNodes(cst);
+        return cst;
+    }
+
+    void removeUselessNodes(Node* root){
+        if (root != nullptr){
+            if (root->value == "opAddOrSub" or root->value == "opMultOrDiv" or root->value == "opUnary"){
+                if (root->children.size() == 1){
+                    Node* tempNode = root->children[0];
+                    Node* parent = root->parent;
+                    bool found = false;
+                    while(!found){
+                        if (tempNode->children.size() != 1)
+                            found = true;
+                        else if (tempNode->value == "identifier" or tempNode->value == "int" or tempNode->value == "float" or tempNode->value == "char")
+                            found = true;
+                        else
+                            tempNode = tempNode->children[0];
+                    }
+                    tempNode->parent = parent;
+                    int index;
+                    for (int i = 0; i < parent->children.size(); ++i) {
+                        if (root == parent->children[i]){
+                            index = i;
+                            break;
+                        }
+                    }
+                    parent->children[index] = tempNode;
+                }
+            }
+            for (auto & i : root->children) {
+                removeUselessNodes(i);
+            }
+        }
+    }
+
+    void createAST(Node* root){
+        if (root != nullptr){
+            if (root->value == ";"){
+                for (int i = 0; i < root->parent->children.size(); ++i) {
+                    if (root == root->parent->children[i]){
+                        root->parent->children.erase(root->parent->children.begin() + i);
+                        break;
+                    }
+                }
+            }
+
+            else if (root->value == "brackets") {
+                if (root->children.size() == 3) {
+                    Node *child = root->children[1];
+                    Node *parent = root->parent;
+                    int index;
+                    for (int i = 0; i < parent->children.size(); ++i) {
+                        if (root == parent->children[i]) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    child->parent = parent;
+                    parent->children[index] = child;
+                }
+            }
+
+            for (auto & i : root->children) {
+                createAST(i);
+            }
+        }
     }
 
     void initFolow(){
@@ -200,7 +262,7 @@ public:
                         }
                     }
                 }
-                // Shift or Goto
+                    // Shift or Goto
                 else{
                     string symbol = currStateRule.first.second[dotIndex];
                     bool isVar = false;
@@ -390,6 +452,7 @@ public:
                 int popCount = getPopCount(rule);
                 for (int i = 0; i < popCount; ++i) {
                     parseStack.pop();
+                    cstStack.top()->parent = nonTerminalNode;
                     nonTerminalNode->children.push_back(cstStack.top());
                     cstStack.pop();
                 }
@@ -403,6 +466,7 @@ public:
                 cstStack.push(nonTerminalNode);
             } else if (action == "acc") {
                 // Retrieve the root of the CST
+                cstStack.top()->parent = nullptr;
                 cst = cstStack.top();
                 // Accept
                 return true;
