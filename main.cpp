@@ -20,7 +20,6 @@ int main (){
     // Create lexer and convert the input into tokens
     string sourceCode = inputFile("test.txt");
     Lexer lexer(sourceCode);
-
     // Get the tokens
     queue<Token> tokens = lexer.getTokens();
 
@@ -41,6 +40,16 @@ int main (){
 
     // Print the AST in dot formaat
     parser.printTree(ast, "AST.dot");
+
+    // Initialize the symbol table and check for errors
+    parser.initSymbolTable(ast);
+    //parser.printSymbolTable();
+
+    // Do constant folding
+    parser.constantFolding(ast);
+
+    // Print the AST after constant folding in dot formaat
+    parser.printTree(ast, "AST2.dot");
 
     return 0;
 }

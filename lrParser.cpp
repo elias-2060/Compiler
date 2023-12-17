@@ -44,6 +44,305 @@ public:
         return cst;
     }
 
+    void constantFolding(Node* root){
+        convertChar(root);
+        optimizeUnaryOp(root);
+        optimizeBinaryOp(root);
+    }
+
+    void convertChar(Node* root){
+        if (root->value == "char"){
+            Node* parent = root->parent;
+            if (parent->value == "definition"){
+                string type;
+                if (parent->children.size() == 4){
+                    type = parent->children[0]->value;
+                }
+                else{
+                    type = parent->children[1]->value;
+                }
+                if (type != "char"){
+                    root->value = type;
+                    string value = root->children[0]->value;
+                    int ascii = value[1];
+                    root->children[0]->value = to_string(ascii);
+                }
+            }
+            else if (parent->value == "assignment"){
+                string var = parent->children[0]->value;
+                string type = symbolTable[var].second;
+                if (type != "char"){
+                    root->value = type;
+                    string value = root->children[0]->value;
+                    int ascii = value[1];
+                    root->children[0]->value = to_string(ascii);
+                }
+            }
+            else if (parent->value == "opAddOrSub" or parent->value == "opMultOrDiv" or parent->value == "opUnary"){
+                root->value = "int";
+                string value = root->children[0]->value;
+                int ascii = value[1];
+                root->children[0]->value = to_string(ascii);
+            }
+        }
+        for (auto & i : root->children) {
+            convertChar(i);
+        }
+    }
+
+    void optimizeUnaryOp(Node* root){
+        if (root->value == "opUnary"){
+            Node* child = root->children[1];
+            string type = child->value;
+            string operation = root->children[0]->value;
+            if (type == "int"){
+                int value = stoi(child->children[0]->value);
+                if (operation == "-"){
+                    value = -value;
+                }
+                root->value = "int";
+                root->children.clear();
+                Node* newNode = new Node{to_string(value)};
+                newNode->parent = root;
+                root->children.push_back(newNode);
+            }
+            else if (type == "float"){
+                float value = stof(child->children[0]->value);
+                if (operation == "-"){
+                    value = -value;
+                }
+                root->value = "float";
+                root->children.clear();
+                Node* newNode = new Node{to_string(value)};
+                newNode->parent = root;
+                root->children.push_back(newNode);
+            }
+        }
+        for (auto & i : root->children) {
+            optimizeUnaryOp(i);
+        }
+    }
+    void optimizeBinaryOp(Node* root){
+        if (root->value == "opAddOrSub" or root->value == "opMultOrDiv"){
+            Node* left = root->children[0];
+            Node* right = root->children[2];
+            Node* curr = root->parent;
+            string idType;
+            bool found = false;
+            while(!found){
+                if (curr->value == "definition"){
+                    found = true;
+                    if (curr->children.size() == 4)
+                        idType = curr->children[0]->value;
+                    else
+                        idType = curr->children[1]->value;
+                }
+                else if (curr->value == "assignment"){
+                    found = true;
+                    string var = curr->children[0]->value;
+                    idType = symbolTable[var].second;
+                }
+                else if (curr->value == "expr"){
+                    found = true;
+                    idType = "float";
+                }
+                else{
+                    curr = curr->parent;
+                }
+            }
+            bool possible = true;
+            if (left->value == "opAddOrSub" or left->value == "opMultOrDiv"){
+                optimizeBinaryOp(left);
+                if (left->value != "int" and left->value != "float"){
+                    possible = false;
+                }
+            }
+            else if (left->value != "int" and left->value != "float"){
+                possible = false;
+            }
+            if (right->value == "opAddOrSub" or right->value == "opMultOrDiv"){
+                optimizeBinaryOp(right);
+                if (right->value != "int" and right->value != "float"){
+                    possible = false;
+                }
+            }
+            else if (right->value != "int" and right->value != "float"){
+                possible = false;
+            }
+            string operation = root->children[1]->value;
+            if (possible) {
+                if (left->value == "int" and right->value == "int" and idType == "int") {
+                    int leftValue = stoi(left->children[0]->value);
+                    int rightValue = stoi(right->children[0]->value);
+                    int result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = leftValue % rightValue;
+                    }
+                    root->value = "int";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }
+                if (left->value == "int" and right->value == "int" and idType == "float") {
+                    int leftValue = stoi(left->children[0]->value);
+                    int rightValue = stoi(right->children[0]->value);
+                    float result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = leftValue % rightValue;
+                    }
+                    root->value = "float";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }else if (left->value == "float" and right->value == "float" and idType == "float") {
+                    float leftValue = stof(left->children[0]->value);
+                    float rightValue = stof(right->children[0]->value);
+                    float result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "float";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }else if (left->value == "float" and right->value == "float" and idType == "int") {
+                    float leftValue = stof(left->children[0]->value);
+                    float rightValue = stof(right->children[0]->value);
+                    int result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "int";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }else if (left->value == "int" and right->value == "float" and idType == "int"){
+                    int leftValue = stoi(left->children[0]->value);
+                    float rightValue = stof(right->children[0]->value);
+                    int result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "int";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }
+                else if (left->value == "int" and right->value == "float" and idType == "float"){
+                    int leftValue = stoi(left->children[0]->value);
+                    float rightValue = stof(right->children[0]->value);
+                    float result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "float";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }
+                else if (left->value == "float" and right->value == "int" and idType == "int"){
+                    float leftValue = stof(left->children[0]->value);
+                    int rightValue = stoi(right->children[0]->value);
+                    int result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "int";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }
+                else if (left->value == "float" and right->value == "int" and idType == "float"){
+                    float leftValue = stof(left->children[0]->value);
+                    int rightValue = stoi(right->children[0]->value);
+                    float result;
+                    if (operation == "+") {
+                        result = leftValue + rightValue;
+                    } else if (operation == "-") {
+                        result = leftValue - rightValue;
+                    } else if (operation == "*") {
+                        result = leftValue * rightValue;
+                    } else if (operation == "/") {
+                        result = leftValue / rightValue;
+                    } else if (operation == "%") {
+                        result = fmod(leftValue, rightValue);
+                    }
+                    root->value = "float";
+                    root->children.clear();
+                    Node *newNode = new Node{to_string(result)};
+                    newNode->parent = root;
+                    root->children.push_back(newNode);
+                }
+            }
+        }
+        for (auto & i : root->children) {
+            optimizeBinaryOp(i);
+        }
+    }
+
     void removeUselessNodes(Node* root){
         if (root != nullptr){
             if (root->value == "opAddOrSub" or root->value == "opMultOrDiv" or root->value == "opUnary"){
@@ -106,6 +405,64 @@ public:
             for (auto & i : root->children) {
                 createAST(i);
             }
+        }
+    }
+
+    void initSymbolTable(Node* root) {
+        if (root != nullptr) {
+            if (root->value == "declaration" or root->value == "definition") {
+                if (root->children[0]->value != "const") {
+                    string type = root->children[0]->value;
+                    string identifier = root->children[1]->value;
+                    if (symbolTable.find(identifier) == symbolTable.end()) {
+                        symbolTable[identifier] = {false, type};
+                    } else {
+                        cerr << "Variable " << identifier << " is already declared or defined" << endl;
+                        exit(0);
+                    }
+                }
+                else{
+                    string type = root->children[1]->value;
+                    string identifier = root->children[2]->value;
+                    if (symbolTable.find(identifier) == symbolTable.end()) {
+                        symbolTable[identifier] = {true, type};
+                    } else {
+                        cerr << "Variable " << identifier << " is already declared or defined" << endl;
+                        exit(0);
+                    }
+                }
+            } else if (root->value == "assignment") {
+                string identifier = root->children[0]->value;
+                if (symbolTable.find(identifier) != symbolTable.end()) {
+                    if (symbolTable[identifier].first) {
+                        cerr << "Cannot assign variable: " << identifier << " which is of type const" << endl;
+                        exit(0);
+                    }
+                } else {
+                    cerr << "Variable " << identifier << " is not declared or defined" << endl;
+                    exit(0);
+                }
+            } else if (root->value == "identifier") {
+                string identifier = root->children[0]->value;
+                if (symbolTable.find(identifier) == symbolTable.end()) {
+                    cerr << "Variable " << identifier << " is not declared or defined" << endl;
+                    exit(0);
+                }
+            }
+
+            // Traverse children
+            for (Node *child: root->children) {
+                initSymbolTable(child);
+            }
+        }
+    }
+
+    void printSymbolTable() {
+        cout << "Symbol Table" << endl;
+        cout << "Identifier\t\tType\t\t\tConst" << endl;
+        cout << "--------------------------------------------------------" << endl;
+        for (auto & i : symbolTable) {
+            cout << boolalpha << i.first << "\t\t\t" << i.second.second << "\t\t\t" << i.second.first << endl;
         }
     }
 

@@ -1,9 +1,8 @@
-int a = -10;
-const float b = 3.2;
-char c = '3';
-int d;
-a = 20;
-int test = (5 + 3) / 10;
-d = a + 3;
-f = -(5 * 3);
-(5 + 3) * a;
+int test = (5 + 3) / -4;
+const float test3 = 5 * 4.1;
+((2+3) * 10) / 3;
+float test4 = 25 % 6.4;
+int test5;
+test5 = 'a' + 3.2;
+test = -'b';
+int test6 = test + 8;
