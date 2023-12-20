@@ -488,19 +488,11 @@ public:
     void initFolow(){
         map<string, int> mp;
 
-        mp["expr"] = 0;
-        mp["opAddOrSub"] = 1;
-        mp["opMultOrDiv"] = 2;
-        mp["opUnary"] = 3;
-        mp["brackets"] = 4;
-        mp["dataType"] = 5;
-        mp["assignment"] = 6;
-        mp["declaration"] = 7;
-        mp["definition"] = 8;
-        mp["int"] = 9;
-        mp["float"] = 10;
-        mp["char"] = 11;
-        mp["identifier"] = 12;
+
+
+        for (int i = 1; i < variables.size(); ++i) {
+            mp[variables[i]] = i-1;
+        }
 
         json cfg;
         ifstream input("CFG.json");
