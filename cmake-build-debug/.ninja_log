@@ -1,0 +1,5 @@
+# ninja log v5
+1	2372	7241016226054018	CMakeFiles/CompilerMB.dir/Lexer.cpp.obj	da12a0e0745ec6db
+2	3765	7241020463379957	CMakeFiles/CompilerMB.dir/main.cpp.obj	2e9b129fde4c0b91
+6	2346	7241020449326474	CMakeFiles/CompilerMB.dir/lrParser.cpp.obj	7d4d8f193a96a902
+3766	4860	7241020474398758	CompilerMB.exe	cc439d017603d162
