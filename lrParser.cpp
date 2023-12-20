@@ -4,7 +4,6 @@
 #include "Lexer.cpp"
 #include <map>
 
-
 typedef pair<string, vector<string>> Rule;
 typedef pair<Rule, int> LRitem;
 
@@ -36,6 +35,10 @@ public:
         initFolow();
         initParseTable();
     }
+    map<string, pair<bool, string>> getSymbolTable(){
+        return symbolTable;
+    }
+
     Node* getCST(){
         return cst;
     }
@@ -53,7 +56,7 @@ public:
     }
 
     void convertChar(Node* root){
-        if (root->value == "char"){
+        if (root->value == "char" and root->children.size() == 1){
             Node* parent = root->parent;
             if (parent->value == "definition"){
                 string type;
@@ -87,8 +90,10 @@ public:
                 root->children[0]->value = to_string(ascii);
             }
         }
-        for (auto & i : root->children) {
-            convertChar(i);
+        else {
+            for (auto &i: root->children) {
+                convertChar(i);
+            }
         }
     }
 
@@ -369,10 +374,22 @@ public:
                         }
                     }
                     parent->children[index] = tempNode;
+
+                    for (auto & i : tempNode->children) {
+                        removeUselessNodes(i);
+                    }
+
+                }
+                else{
+                    for (auto & i : root->children) {
+                        removeUselessNodes(i);
+                    }
                 }
             }
-            for (auto & i : root->children) {
-                removeUselessNodes(i);
+            else{
+                for (auto & i : root->children) {
+                    removeUselessNodes(i);
+                }
             }
         }
     }
@@ -469,22 +486,6 @@ public:
     }
 
     void initFolow(){
-        /*Rule follow0 = {"expr", {"$"}};
-        Rule follow1 = {"opAddOrSub", {"PLUS", "MINUS", "SEMICOLON", "CLOSINGPARENT"}};
-        Rule follow2 = {"opMultOrDiv", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow3 = {"opUnary", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow4 = {"brackets", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow5 = {"dataType", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow6 = {"identifier", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow7 = {"int", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow8 = {"float", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow9 = {"char", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
-        Rule follow10 = {"assignment", {"SEMICOLON"}};
-        Rule follow11 = {"declaration", {"SEMICOLON"}};
-        Rule follow12 = {"definition", {"SEMICOLON"}};
-        follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8, follow9, follow10,
-                   follow11, follow12};*/
-
         map<string, int> mp;
 
         mp["expr"] = 0;
