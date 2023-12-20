@@ -1,7 +1,7 @@
 //
 // Created by elias on 17/12/2023.
 //
-#include "lrParser.cpp"
+#include "Parser.cpp"
 
 class Compiler {
 private:
@@ -14,6 +14,7 @@ private:
     int dataCounter = 0;
     int registerNumberInt = 0;
     int registerNumberFloat = 0;
+    string mipsOutput;
 
 public:
     Compiler(const map<string, pair<bool, string>>& s, Node* tree){
@@ -50,14 +51,20 @@ public:
         output += "\t\t li $v0, 10\n";
         output += "\t\t syscall\n";
 
+        mipsOutput = dataOuput + output;
         // Print mips code
-        printCode();
+    }
+
+    string getMipsCode(){
+        return mipsOutput;
     }
 
     void printCode(){
         ofstream file("output.asm");
         file << dataOuput << endl;
         file << output;
+
+
     }
 
     void operation(Node* root, const string& type){
@@ -822,7 +829,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul " + right->children[0]->value + ", " + right->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -844,7 +851,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -869,7 +876,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -891,7 +898,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -916,7 +923,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul " + right->children[0]->value + ", " + right->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -938,7 +945,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -963,7 +970,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -985,7 +992,7 @@ public:
                               to_string(value) + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            to_string(value) + "\n";
+                              to_string(value) + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               to_string(value) + "\n";
@@ -1087,19 +1094,19 @@ public:
 
                     if (root->children[1]->value == "+")
                         output += "\t\t add.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                                regFloat + "\n";
+                                  regFloat + "\n";
                     else if (root->children[1]->value == "-")
                         output += "\t\t sub.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                                regFloat + "\n";
+                                  regFloat + "\n";
                     else if (root->children[1]->value == "*")
                         output += "\t\t mul.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                                regFloat + "\n";
+                                  regFloat + "\n";
                     else if (root->children[1]->value == "/")
                         output += "\t\t div.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                                regFloat + "\n";
+                                  regFloat + "\n";
                     else if (root->children[1]->value == "%")
                         output += "\t\t rem.s " + right->children[0]->value + ", " + right->children[0]->value + ", " +
-                                regFloat + "\n";
+                                  regFloat + "\n";
                     root->value = "register";
                     root->children.clear();
                     Node *node = new Node();
@@ -1271,7 +1278,7 @@ public:
                               right->children[0]->value + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            right->children[0]->value + "\n";
+                              right->children[0]->value + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               right->children[0]->value + "\n";
@@ -1292,7 +1299,7 @@ public:
                               right->children[0]->value + "\n";
                 else if (root->children[1]->value == "-")
                     output += "\t\t sub.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
-                            right->children[0]->value + "\n";
+                              right->children[0]->value + "\n";
                 else if (root->children[1]->value == "*")
                     output += "\t\t mul.s " + left->children[0]->value + ", " + left->children[0]->value + ", " +
                               right->children[0]->value + "\n";

@@ -29,6 +29,7 @@ struct Token {
 class Lexer{
 private:
     queue<Token> tokens;
+    string errors;
 public:
     explicit Lexer(const string& input) {
         size_t pos = 0;
@@ -60,7 +61,7 @@ public:
                     tokens.push({ID, lexeme, "ID"});
                 }
             }
-            // Integers and Floats
+                // Integers and Floats
             else if (isdigit(currentChar) || currentChar == '.') {
                 size_t start = pos;
                 bool isFloat = false;
@@ -79,7 +80,7 @@ public:
                     tokens.push({INT, lexeme, "INT"});
                 }
             }
-            // Chars
+                // Chars
             else if (currentChar == '\'') {
                 pos++;
                 if (pos < input.length()) {
@@ -91,13 +92,15 @@ public:
                     if (pos < input.length() && input[pos] == '\'') {
                         pos++;
                     } else {
-                        cerr << "syntaxError: Expected closing single quote for character literal at position " << pos << endl;
+                        errors += "syntaxError: Expected closing single quote for character literal at position " +
+                                  to_string(pos) + "\n";
                     }
                 } else {
-                    cerr << "syntaxError: Unexpected end of input after single quote for character literal at position " << pos << endl;
+                    errors += "syntaxError: Unexpected end of input after single quote for character literal at position " +
+                              to_string(pos) + "\n";
                 }
             }
-            // Operators and semicolon
+                // Operators and semicolon
             else {
                 switch (currentChar) {
                     case '+':
@@ -128,7 +131,7 @@ public:
                         tokens.push({CLOSINGPARENT, ")", "CLOSINGPARENT"});
                         break;
                     default:
-                        cerr << "syntaxError: Unrecognized character at position " << pos << endl;
+                        errors += "syntaxError: Unrecognized character at position " + to_string(pos) + "\n";
                         pos++;
                         break;
                 }
@@ -136,6 +139,10 @@ public:
             }
         }
         tokens.push({DOLLAR, "$", "DOLLAR"});
+    }
+
+    string getErrors(){
+        return errors;
     }
 
     queue<Token> getTokens(){

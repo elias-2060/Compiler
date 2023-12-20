@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>MainWindow</class>
+    <widget class="QMainWindow" name="MainWindow">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>800</width>
+                <height>600</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>MainWindow</string>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <widget class="QLabel" name="label">
+                <property name="geometry">
+                    <rect>
+                        <x>600</x>
+                        <y>10</y>
+                        <width>91</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#00aa00;&quot;&gt;Mips Code&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="label_2">
+                <property name="geometry">
+                    <rect>
+                        <x>100</x>
+                        <y>10</y>
+                        <width>111</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#0000ff;&quot;&gt;Source Code&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="label_3">
+                <property name="geometry">
+                    <rect>
+                        <x>120</x>
+                        <y>420</y>
+                        <width>63</width>
+                        <height>31</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#aa0000;&quot;&gt;Errors&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+            </widget>
+            <widget class="QTextEdit" name="textEdit">
+                <property name="geometry">
+                    <rect>
+                        <x>0</x>
+                        <y>40</y>
+                        <width>331</width>
+                        <height>381</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton">
+                <property name="geometry">
+                    <rect>
+                        <x>350</x>
+                        <y>0</y>
+                        <width>83</width>
+                        <height>29</height>
+                    </rect>
+                </property>
+                <property name="whatsThis">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                    <string>Compile</string>
+                </property>
+            </widget>
+            <widget class="QTextBrowser" name="textBrowser">
+                <property name="geometry">
+                    <rect>
+                        <x>460</x>
+                        <y>40</y>
+                        <width>331</width>
+                        <height>501</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QTextBrowser" name="textBrowser_2">
+                <property name="geometry">
+                    <rect>
+                        <x>0</x>
+                        <y>450</y>
+                        <width>331</width>
+                        <height>91</height>
+                    </rect>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QMenuBar" name="menubar">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>800</width>
+                    <height>25</height>
+                </rect>
+            </property>
+            <widget class="QMenu" name="menuCompiler">
+                <property name="title">
+                    <string>Compiler</string>
+                </property>
+            </widget>
+            <addaction name="menuCompiler"/>
+        </widget>
+        <widget class="QStatusBar" name="statusbar"/>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>

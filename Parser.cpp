@@ -27,6 +27,7 @@ private:
     vector<string> terminals;
     Node* cst;
     map<string, pair<bool, string>> symbolTable;
+    string errors;
 public:
     explicit Parser(const string& CFG){
         parseStack.push(0);
@@ -37,6 +38,10 @@ public:
     }
     map<string, pair<bool, string>> getSymbolTable(){
         return symbolTable;
+    }
+
+    string getErrors(){
+        return errors;
     }
 
     Node* getCST(){
@@ -436,8 +441,7 @@ public:
                     if (symbolTable.find(identifier) == symbolTable.end()) {
                         symbolTable[identifier] = {false, type};
                     } else {
-                        cerr << "Variable " << identifier << " is already declared or defined" << endl;
-                        exit(0);
+                        errors += "Variable " + identifier + " is already declared or defined\n";
                     }
                 }
                 else{
@@ -446,26 +450,22 @@ public:
                     if (symbolTable.find(identifier) == symbolTable.end()) {
                         symbolTable[identifier] = {true, type};
                     } else {
-                        cerr << "Variable " << identifier << " is already declared or defined" << endl;
-                        exit(0);
+                        errors += "Variable " + identifier + " is already declared or defined\n";
                     }
                 }
             } else if (root->value == "assignment") {
                 string identifier = root->children[0]->value;
                 if (symbolTable.find(identifier) != symbolTable.end()) {
                     if (symbolTable[identifier].first) {
-                        cerr << "Cannot assign variable: " << identifier << " which is of type const" << endl;
-                        exit(0);
+                        errors += "Cannot assign variable: " + identifier + " which is of type const\n";
                     }
                 } else {
-                    cerr << "Variable " << identifier << " is not declared or defined" << endl;
-                    exit(0);
+                    errors += "Variable " + identifier + " is not declared or defined\n";
                 }
             } else if (root->value == "identifier") {
                 string identifier = root->children[0]->value;
                 if (symbolTable.find(identifier) == symbolTable.end()) {
-                    cerr << "Variable " << identifier << " is not declared or defined" << endl;
-                    exit(0);
+                    errors += "Variable " + identifier + " is not declared or defined\n";
                 }
             }
 
@@ -603,7 +603,7 @@ public:
                     }
                 }
             } else
-                cerr << "Unknown type: " << type << endl;
+                errors += "Unknown type: " + type + "\n";
         }
     }
     int getRuleIndex(const Rule& rule){
@@ -652,7 +652,7 @@ public:
                         if (row[testIndex].empty()) {
                             row[testIndex] = "acc";
                         } else {
-                            cerr << "Conflict in state " << currState << " for symbol " << "$" << endl;
+                            errors += "Conflict in state " + to_string(currState) + " for symbol " + "$" + "\n";
                         }
                     }
                     else {
@@ -663,7 +663,7 @@ public:
                                     if (row[index].empty()) {
                                         row[index] = "R" + to_string(ruleIndex);
                                     } else {
-                                        cerr << "Conflict in state " << currState << " for symbol " << follow << endl;
+                                        errors += "Conflict in state " + to_string(currState) + " for symbol " + follow + "\n";
                                     }
                                 }
                             }
@@ -733,7 +733,7 @@ public:
                         else if (isTerm)
                             index = getIndex(symbol, "terminal");
                         else
-                            cerr << "Unknown symbol: " << symbol << endl;
+                            errors += "Unknown symbol: " + symbol + "\n";
                         if (row[index].empty()) {
                             if (isTerm) {
                                 if (!found)
@@ -748,9 +748,9 @@ public:
                                     row[index] = to_string(tempIndex);
                             }
                             else
-                                cerr << "Unknown symbol: " << symbol << endl;
+                                errors += "Unknown symbol: " + symbol + "\n";
                         }else{
-                            cerr << "Conflict in state " << currState << " for symbol " << symbol << endl;
+                            errors += "Conflict in state " + to_string(currState) + " for symbol " + symbol + "\n";
                         }
                     }
                 }
@@ -807,7 +807,7 @@ public:
             if (symbol == variables[i])
                 return i + terminals.size();
         }
-        cerr << "Unknown symbol: " << symbol << endl;
+        errors += "Unknown symbol: " + symbol + "\n";
     }
 
     int getSymbol(const Token& token) {
@@ -820,7 +820,7 @@ public:
                 if (tokenType == terminals[i])
                     return i;
             }
-            cerr << "Unknown token type: " << tokenType << endl;
+            errors += "Unknown token type: " + tokenType + "\n";
         }
     }
 
@@ -882,13 +882,15 @@ public:
                 return false;
             }else {
                 // Error
-                cout << "Error in state " << currentState << " for symbol " << inputQueue.front().lexeme << endl;
+                errors += "Error in state " + to_string(currentState) + " for symbol " + inputQueue.front().lexeme + "\n";
                 break;
             }
         }
         return false;
     }
     string addNodes(Node* node){
+        if (node == nullptr)
+            return "";
         string result = to_string(reinterpret_cast<uintptr_t>(node)) + "[label=\"" + node->value + "\"] \n";
         for (auto& child : node->children) {
             result += addNodes(child);
@@ -897,6 +899,8 @@ public:
     }
 
     string addConnections(Node* node){
+        if (node == nullptr)
+            return "";
         string connections;
         for (auto & i : node->children) {
             connections += to_string(reinterpret_cast<uintptr_t>(node)) + " -- " + to_string(reinterpret_cast<uintptr_t>(i)) + "\n";
@@ -905,6 +909,8 @@ public:
         return connections;
     }
     void printTree(Node* root, const string& filename) {
+        if (root == nullptr)
+            return;
         string graph = "graph ast { \n" + addNodes(root) + addConnections(root) + "}";
         ofstream file(filename);
         file << graph;
