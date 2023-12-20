@@ -2,6 +2,7 @@
 // Created by elias on 28/11/2023.
 //
 #include "Lexer.cpp"
+#include <map>
 
 typedef pair<string, vector<string>> Rule;
 typedef pair<Rule, int> LRitem;
@@ -467,7 +468,7 @@ public:
     }
 
     void initFolow(){
-        Rule follow0 = {"expr", {"$"}};
+        /*Rule follow0 = {"expr", {"$"}};
         Rule follow1 = {"opAddOrSub", {"PLUS", "MINUS", "SEMICOLON", "CLOSINGPARENT"}};
         Rule follow2 = {"opMultOrDiv", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
         Rule follow3 = {"opUnary", {"PLUS", "MINUS", "SEMICOLON", "DIVIDE", "MULTIPLY", "REMINDER", "CLOSINGPARENT"}};
@@ -481,7 +482,63 @@ public:
         Rule follow11 = {"declaration", {"SEMICOLON"}};
         Rule follow12 = {"definition", {"SEMICOLON"}};
         follows = {follow0, follow1, follow2, follow3, follow4, follow5, follow6, follow7, follow8, follow9, follow10,
-                   follow11, follow12};
+                   follow11, follow12};*/
+
+        map<string, int> mp;
+
+        mp["expr"] = 0;
+        mp["opAddOrSub"] = 1;
+        mp["opMultOrDiv"] = 2;
+        mp["opUnary"] = 3;
+        mp["brackets"] = 4;
+        mp["dataType"] = 5;
+        mp["assignment"] = 6;
+        mp["declaration"] = 7;
+        mp["definition"] = 8;
+        mp["int"] = 9;
+        mp["float"] = 10;
+        mp["char"] = 11;
+        mp["identifier"] = 12;
+
+        json cfg;
+        ifstream input("CFG.json");
+        input >> cfg;
+        int index = -1;
+        for (int i = 0; i < 13; ++i) {
+            follows.emplace_back("", std::vector<std::string>());
+        }
+
+        for(auto i : cfg["Variables"]){
+            pair<string, vector<string>> h;
+            vector<string> v;
+
+            h.first = i;
+            for(auto j : cfg["Productions"]){
+                int counter = 0;
+                for(auto k : j["body"]){
+                    if(k == i){
+                        index = counter + 1;
+                    }
+                    if(index == j["body"].size() and k != "expr") {
+                        for (auto n: follows[mp[j["head"]]].second) {
+                            v.push_back(n);
+                        }
+                    }
+                    if(index == counter){
+                        v.push_back(k);
+                        break;
+                    }
+                    counter += 1;
+                }
+                index = -1;
+            }
+            sort(v.begin(), v.end());
+            v.erase( unique(v.begin(), v.end() ), v.end());
+
+            h.second = v;
+            follows[mp[i]] = h;
+        }
+        follows[0].second.push_back("$");
     }
 
     void doClosure(vector<LRitem>& v, vector<string>& done){
