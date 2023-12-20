@@ -1,3 +1,0 @@
-C:/Users/saled/Documents/GitHub/Compiler/cmake-build-debug/CMakeFiles/CompilerMB.dir
-C:/Users/saled/Documents/GitHub/Compiler/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/saled/Documents/GitHub/Compiler/cmake-build-debug/CMakeFiles/rebuild_cache.dir
