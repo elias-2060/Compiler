@@ -1,7 +1,0 @@
-const int a = (-2 - 3) * -10 / (5 - 3);
-int b;
-b = 5 % 10;
-int c = a + b * 2;
-const float d = a / 2;
-char e = 'a';
-c = 'b';

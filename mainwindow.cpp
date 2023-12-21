@@ -6,10 +6,16 @@ MainWindow::MainWindow(QWidget *parent)
         , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->pushButton->setStyleSheet("background-color: green; color: white;");
-    ui->textEdit->setStyleSheet("color: blue; border: 1px solid blue;");
-    ui->textBrowser->setStyleSheet("color: green; border: 1px solid green;");
-    ui->textBrowser_2->setStyleSheet("color: red; border: 1px solid red;");
+    ui->pushButton->setStyleSheet("background-color: #4d3df5; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 17px;");
+    ui->textEdit->setStyleSheet("color: white; border: 1px solid blue; border-radius: 10px; font-size: 14px;");
+    ui->textBrowser->setStyleSheet("color: green; border: 1px solid green; border-radius: 10px; font-size: 14px;");
+    ui->textBrowser_2->setStyleSheet("color: red; border: 1px solid red; border-radius: 10px; font-size: 14px;");
+    ui->pushButton->setCursor(Qt::PointingHandCursor);
+    ui->textEdit->setPlaceholderText("Write your code here");
+    ui->textBrowser->setReadOnly(true);
+    ui->textBrowser_2->setReadOnly(true);
+    ui->textEdit->setFocus();
+
 }
 
 MainWindow::~MainWindow()
